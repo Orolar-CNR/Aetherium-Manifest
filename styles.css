@@ -1,0 +1,270 @@
+:root {
+  --bg: #020204;
+
+  --cyan: 0, 245, 255;
+  --blue: 80, 140, 255;
+  --purple: 138, 124, 255;
+  --orange: 255, 164, 76;
+  --pink: 255, 79, 216;
+  --red: 255, 77, 77;
+  --green: 80, 255, 180;
+
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+body {
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Noto Sans Thai",
+    "Noto Sans",
+    sans-serif;
+
+  color: white;
+}
+
+#app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(40, 40, 70, 0.08),
+      transparent 48%
+    ),
+    #020204;
+}
+
+#manifestCanvas {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  touch-action: none;
+
+  filter:
+    blur(0.25px)
+    contrast(1.12);
+
+  cursor: crosshair;
+}
+
+.interaction-field {
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  display: flex;
+  justify-content: center;
+
+  padding:
+    18px
+    18px
+    calc(18px + var(--safe-bottom));
+
+  pointer-events: none;
+}
+
+#intentForm {
+  width: min(700px, 100%);
+  pointer-events: auto;
+}
+
+.input-shell {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+
+  padding: 8px 8px 8px 20px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.08);
+
+  border-radius: 999px;
+
+  background:
+    rgba(5, 6, 10, 0.55);
+
+  box-shadow:
+    0 0 40px rgba(0, 0, 0, 0.40),
+    inset 0 0 30px rgba(255, 255, 255, 0.02);
+
+  backdrop-filter: blur(20px);
+
+  transition:
+    border-color 240ms ease,
+    box-shadow 240ms ease,
+    transform 240ms ease;
+}
+
+.input-shell:focus-within {
+  border-color:
+    rgba(0, 245, 255, 0.18);
+
+  box-shadow:
+    0 0 50px rgba(0, 245, 255, 0.05),
+    inset 0 0 30px rgba(255, 255, 255, 0.025);
+}
+
+#intentInput {
+  flex: 1;
+
+  min-width: 0;
+
+  border: 0;
+  outline: 0;
+
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.92);
+
+  font-size: 16px;
+  line-height: 1.5;
+
+  padding: 10px 12px;
+
+  caret-color: rgba(0, 245, 255, 0.9);
+}
+
+#intentInput::placeholder {
+  color:
+    rgba(255, 255, 255, 0.22);
+}
+
+#resonanceButton {
+  position: relative;
+
+  flex:
+    0 0
+    48px;
+
+  width: 48px;
+  height: 48px;
+
+  border: 0;
+  border-radius: 50%;
+
+  background:
+    rgba(255, 255, 255, 0.035);
+
+  cursor: pointer;
+
+  transition:
+    transform 200ms ease,
+    background 200ms ease;
+}
+
+#resonanceButton:hover {
+  transform: scale(1.06);
+
+  background:
+    rgba(255, 255, 255, 0.065);
+}
+
+#resonanceButton:active {
+  transform: scale(0.96);
+}
+
+.button-core {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  width: 14px;
+  height: 14px;
+
+  transform:
+    translate(-50%, -50%);
+
+  border-radius: 50%;
+
+  background:
+    rgba(0, 245, 255, 0.85);
+
+  box-shadow:
+    0 0 10px rgba(0, 245, 255, 0.70),
+    0 0 24px rgba(0, 245, 255, 0.30);
+
+  animation:
+    breathe 2.8s ease-in-out infinite;
+}
+
+@keyframes breathe {
+
+  0%,
+  100% {
+    transform:
+      translate(-50%, -50%)
+      scale(0.82);
+
+    opacity: 0.70;
+  }
+
+  50% {
+    transform:
+      translate(-50%, -50%)
+      scale(1.20);
+
+    opacity: 1;
+  }
+}
+
+@media (max-width: 640px) {
+
+  .interaction-field {
+    padding:
+      12px
+      12px
+      calc(12px + var(--safe-bottom));
+  }
+
+  .input-shell {
+    padding-left: 14px;
+  }
+
+  #intentInput {
+    font-size: 15px;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .button-core {
+    animation: none;
+  }
+
+  #resonanceButton,
+  .input-shell {
+    transition: none;
+  }
+}
