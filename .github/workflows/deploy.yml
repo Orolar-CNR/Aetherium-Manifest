@@ -29,23 +29,37 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
-      - name: Validate static site files
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate files and contract
         run: |
-          echo "Verifying presence of essential web assets..."
-          [ -f index.html ] || { echo "index.html is missing!"; false; }
-          [ -f styles.css ] || { echo "styles.css is missing!"; false; }
-          [ -f app.js ] || { echo "app.js is missing!"; false; }
-          echo "Validating syntax of index.html..."
-          grep -q "<canvas id=\"manifestCanvas\"></canvas>" index.html || { echo "Canvas missing from index.html!"; false; }
+          echo "Verifying presence of essential assets and contract..."
+          [ -f index.html ] || { echo "index.html is missing!"; exit 1; }
+          [ -f styles.css ] || { echo "styles.css is missing!"; exit 1; }
+          [ -f app.js ] || { echo "app.js is missing!"; exit 1; }
+          [ -f package.json ] || { echo "package.json is missing!"; exit 1; }
+          [ -f runtime/visual-state.js ] || { echo "runtime/visual-state.js is missing!"; exit 1; }
+          [ -f contracts/visual-state.schema.json ] || { echo "contracts/visual-state.schema.json is missing!"; exit 1; }
+          [ -f tests/visual-state.test.js ] || { echo "tests/visual-state.test.js is missing!"; exit 1; }
+          echo "Validating Canvas setup in index.html..."
+          grep -q "<canvas id=\"manifestCanvas\"></canvas>" index.html || { echo "Canvas element missing from index.html!"; exit 1; }
           echo "Validation completed successfully."
+
+      - name: Run Tests
+        run: |
+          echo "Executing contract tests..."
+          node tests/visual-state.test.js
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
 
       - name: Upload static site
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
           path: "."
 

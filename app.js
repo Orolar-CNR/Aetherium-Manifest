@@ -3,7 +3,7 @@
 /*
  * AETHERIUM LIGHT MANIFEST
  *
- * Phase 0 / MVP
+ * Phase 0.1
  * Prototype Semantic Interpreter / Phase-0 Intent Interpreter
  *
  * Input:
@@ -20,11 +20,17 @@
  *   Motion
  *   Morphology
  *
- * NOTE: This is a Phase-0 Visual Proof-of-Concept.
+ * NOTE: This is a Phase-0.1 Visual Proof-of-Concept.
  * This implementation does NOT contain LLM reasoning, backend cognition,
  * AETH compiler, Presence IR runtime, or production governor.
  * No textual response renderer exists in this layer.
  */
+
+import {
+  createVisualState,
+  validateVisualState,
+  clampVisualState
+} from "./runtime/visual-state.js";
 
 // --- Localization Structure ---
 const LOCALIZATION = {
@@ -716,71 +722,6 @@ function interpretIntent(text) {
 
 
 /* ---------------------------------------------------------
- * Visual State Governor
- * --------------------------------------------------------- */
-
-function governVisualState(candidate) {
-
-  // Safety fallback for malformed object
-  const safeCandidate = candidate || {};
-
-  return {
-    phase:
-      allowedPhase(
-        safeCandidate.phase
-      ),
-
-    shape:
-      allowedShape(
-        safeCandidate.shape
-      ),
-
-    hue:
-      clamp(
-        Number(safeCandidate.hue) || 190,
-        0,
-        360
-      ),
-
-    energy:
-      clamp(
-        Number(safeCandidate.energy) || 0.18,
-        0,
-        1
-      ),
-
-    density:
-      clamp(
-        Number(safeCandidate.density) || 0.55,
-        0.05,
-        1
-      ),
-
-    turbulence:
-      clamp(
-        Number(safeCandidate.turbulence) || 0.10,
-        0,
-        0.65
-      ),
-
-    coherence:
-      clamp(
-        Number(safeCandidate.coherence) || 0.88,
-        0,
-        1
-      ),
-
-    confidence:
-      clamp(
-        Number(safeCandidate.confidence) || 0.55,
-        0,
-        1
-      )
-  };
-}
-
-
-/* ---------------------------------------------------------
  * Apply State
  * --------------------------------------------------------- */
 
@@ -791,7 +732,7 @@ function applyIntent(text) {
       interpretIntent(text);
 
     const governed =
-      governVisualState(
+      createVisualState(
         candidate
       );
 
@@ -1641,22 +1582,6 @@ function frame(now) {
  * Helpers
  * --------------------------------------------------------- */
 
-function clamp(
-  value,
-  min,
-  max
-) {
-
-  return Math.min(
-    max,
-    Math.max(
-      min,
-      value
-    )
-  );
-}
-
-
 function lerp(
   a,
   b,
@@ -1707,48 +1632,6 @@ function includesAny(
         value
       )
   );
-}
-
-
-function allowedPhase(
-  phase
-) {
-
-  const allowed = new Set([
-    "IDLE",
-    "LISTENING",
-    "PROCESSING",
-    "RESPONDING",
-    "WARNING",
-    "ERROR",
-    "NIRODHA"
-  ]);
-
-  return allowed.has(
-    phase
-  )
-    ? phase
-    : "IDLE";
-}
-
-
-function allowedShape(
-  shape
-) {
-
-  const allowed = new Set([
-    "sphere",
-    "triangle",
-    "spiral",
-    "line",
-    "wave"
-  ]);
-
-  return allowed.has(
-    shape
-  )
-    ? shape
-    : "sphere";
 }
 
 
