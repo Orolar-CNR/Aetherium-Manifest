@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aetherium-manifest/contracts/main/visual-state.schema.json",
+  "title": "Aetherium Visual State Contract",
+  "description": "Canonical visual state contract for Aetherium Manifest Phase 0.1",
+  "type": "object",
+  "properties": {
+    "phase": {
+      "type": "string",
+      "enum": ["IDLE", "LISTENING", "PROCESSING", "RESPONDING", "WARNING", "ERROR", "NIRODHA"]
+    },
+    "shape": {
+      "type": "string",
+      "enum": ["sphere", "triangle", "spiral", "line", "wave"]
+    },
+    "hue": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 360,
+      "default": 190
+    },
+    "energy": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.18
+    },
+    "density": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.55
+    },
+    "turbulence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 0.65,
+      "default": 0.10
+    },
+    "coherence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.88
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.55
+    }
+  },
+  "required": [
+    "phase",
+    "shape"
+  ],
+  "additionalProperties": false
+}
