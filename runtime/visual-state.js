@@ -1,209 +1,110 @@
 /**
- * Aetherium Visual State Contract Validation and Safety Governor
- * Phase 0.1
+ * AETHERIUM MANIFEST - PHASE 0.1
+ * Canonical Visual State Enforcement
  */
 
-export const ALLOWED_PHASES = new Set([
-  "IDLE",
-  "LISTENING",
-  "PROCESSING",
-  "RESPONDING",
-  "WARNING",
-  "ERROR",
-  "NIRODHA"
-]);
+const VALID_PHASES = new Set(['IDLE', 'LISTENING', 'PROCESSING', 'RESPONDING', 'WARNING', 'ERROR', 'NIRODHA']);
+const VALID_SHAPES = new Set(['sphere', 'vortex', 'wave']);
 
-export const ALLOWED_SHAPES = new Set([
-  "sphere",
-  "triangle",
-  "spiral",
-  "line",
-  "wave"
-]);
-
-export const DEFAULTS = {
-  phase: "IDLE",
-  shape: "sphere",
-  hue: 190,
-  energy: 0.18,
-  density: 0.55,
-  turbulence: 0.10,
-  coherence: 0.88,
-  confidence: 0.55
+const NUMERIC_FIELDS = {
+  hue: { min: 0, max: 360, default: 190 },
+  energy: { min: 0, max: 1.0, default: 0.5 },
+  density: { min: 0, max: 1.0, default: 0.5 },
+  turbulence: { min: 0, max: 1.0, default: 0.2 },
+  coherence: { min: 0, max: 1.0, default: 0.8 },
+  confidence: { min: 0, max: 1.0, default: 0.5 }
 };
 
+const ALLOWED_KEYS = new Set(['phase', 'shape', ...Object.keys(NUMERIC_FIELDS)]);
+
 /**
- * Validates a Visual State against the contract specification in contracts/visual-state.schema.json.
- * It is a pure, non-mutating validation that does not clamp or fill defaults.
- * It rejects any unknown fields, missing required fields, or out-of-bound values.
- *
- * @param {any} state - The object to validate.
- * @returns {boolean} True if strictly valid; false otherwise.
+ * Pure validation of a canonical Visual State.
+ * Never mutates, clamps, or fills defaults.
  */
 export function validateVisualState(state) {
-  if (state === null || typeof state !== "object" || Array.isArray(state)) {
-    return false;
-  }
+  if (!state || typeof state !== 'object' || Array.isArray(state)) return false;
 
-  // Check required fields
-  const required = [
-    "phase",
-    "shape",
-    "hue",
-    "energy",
-    "density",
-    "turbulence",
-    "coherence",
-    "confidence"
-  ];
+  // Exact required semantic fields
+  if (!('phase' in state) || !('shape' in state)) return false;
+  if (!VALID_PHASES.has(state.phase) || !VALID_SHAPES.has(state.shape)) return false;
 
-  for (const field of required) {
-    if (!(field in state)) {
-      return false;
-    }
-  }
-
-  // Reject unknown keys
-  const allowedKeys = new Set(required);
   for (const key of Object.keys(state)) {
-    if (!allowedKeys.has(key)) {
-      return false;
+    if (!ALLOWED_KEYS.has(key)) return false; // Reject unknown keys
+
+    if (NUMERIC_FIELDS[key]) {
+      const val = state[key];
+      // Strict numeric enforcement
+      if (typeof val !== 'number' || !Number.isFinite(val)) return false;
+      
+      const bounds = NUMERIC_FIELDS[key];
+      if (val < bounds.min || val > bounds.max) return false;
     }
-  }
-
-  // Check types & specific constraints
-  if (typeof state.phase !== "string" || !ALLOWED_PHASES.has(state.phase)) {
-    return false;
-  }
-
-  if (typeof state.shape !== "string" || !ALLOWED_SHAPES.has(state.shape)) {
-    return false;
-  }
-
-  const validateNumber = (val, min, max) => {
-    if (typeof val !== "number" || !Number.isFinite(val)) {
-      return false;
-    }
-    return val >= min && val <= max;
-  };
-
-  if (!validateNumber(state.hue, 0, 360)) {
-    return false;
-  }
-
-  if (!validateNumber(state.energy, 0, 1)) {
-    return false;
-  }
-
-  if (!validateNumber(state.density, 0, 1)) {
-    return false;
-  }
-
-  if (!validateNumber(state.turbulence, 0, 0.65)) {
-    return false;
-  }
-
-  if (!validateNumber(state.coherence, 0, 1)) {
-    return false;
-  }
-
-  if (!validateNumber(state.confidence, 0, 1)) {
-    return false;
   }
 
   return true;
 }
 
 /**
- * Safely clamps numeric values and ensures allowed enumerations.
- * It does not mutate the candidate object, returning a new normalized object instead.
- *
- * If phase or shape are invalid or missing, it will NOT invent semantic meaning;
- * it will retain the invalid/missing values so that validateVisualState can catch them,
- * unless they are explicitly undefined/missing, in which case we populate the defaults
- * to prevent accidental runtime reference errors.
- *
- * @param {any} candidate - The input values to normalize.
- * @returns {any} A new normalized object.
+ * Creates a Canonical Target Visual State from a Candidate State.
+ * Enforces normalization, clamps valid out-of-range numerics, and 
+ * rejects (throws) on malformed semantics or types.
+ * Guaranteed to return a new object (immutable input).
  */
-export function clampVisualState(candidate) {
-  if (candidate === null || typeof candidate !== "object" || Array.isArray(candidate)) {
-    throw new TypeError("Candidate must be a non-null object.");
+export function createVisualState(candidate) {
+  if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
+    throw new TypeError("Candidate must be an object");
   }
 
-  const allowedKeys = new Set([
-    "phase",
-    "shape",
-    "hue",
-    "energy",
-    "density",
-    "turbulence",
-    "coherence",
-    "confidence"
-  ]);
+  // 1. Missing semantic validation (Do not invent semantic meaning)
+  if (!('phase' in candidate)) throw new Error("Missing required semantic property: phase");
+  if (!('shape' in candidate)) throw new Error("Missing required semantic property: shape");
 
-  // Reject unknown keys
-  for (const key of Object.keys(candidate)) {
-    if (!allowedKeys.has(key)) {
-      throw new Error(`Unknown property rejected: "${key}"`);
-    }
-  }
+  // 2. Semantic enum validation
+  if (!VALID_PHASES.has(candidate.phase)) throw new Error(`Invalid phase: ${candidate.phase}`);
+  if (!VALID_SHAPES.has(candidate.shape)) throw new Error(`Invalid shape: ${candidate.shape}`);
 
-  const result = {};
-
-  // Check required semantic properties
-  if (!("phase" in candidate)) {
-    throw new Error("Missing required semantic property: phase");
-  }
-  if (typeof candidate.phase !== "string" || !ALLOWED_PHASES.has(candidate.phase)) {
-    throw new Error(`Invalid semantic phase: "${candidate.phase}"`);
-  }
-  result.phase = candidate.phase;
-
-  if (!("shape" in candidate)) {
-    throw new Error("Missing required semantic property: shape");
-  }
-  if (typeof candidate.shape !== "string" || !ALLOWED_SHAPES.has(candidate.shape)) {
-    throw new Error(`Invalid semantic shape: "${candidate.shape}"`);
-  }
-  result.shape = candidate.shape;
-
-  // Clamping and validation helper for numeric fields
-  const processNumericField = (key, min, max, defaultVal) => {
-    if (!(key in candidate) || candidate[key] === undefined) {
-      return defaultVal;
-    }
-    const val = candidate[key];
-    if (typeof val !== "number" || !Number.isFinite(val)) {
-      throw new TypeError(`Invalid numeric type for "${key}": expected finite number, got ${typeof val === "object" ? (val === null ? "null" : "object") : typeof val}`);
-    }
-    return Math.min(max, Math.max(min, val));
+  const canonicalState = {
+    phase: candidate.phase,
+    shape: candidate.shape
   };
 
-  result.hue = processNumericField("hue", 0, 360, DEFAULTS.hue);
-  result.energy = processNumericField("energy", 0, 1, DEFAULTS.energy);
-  result.density = processNumericField("density", 0, 1, DEFAULTS.density);
-  result.turbulence = processNumericField("turbulence", 0, 0.65, DEFAULTS.turbulence);
-  result.coherence = processNumericField("coherence", 0, 1, DEFAULTS.coherence);
-  result.confidence = processNumericField("confidence", 0, 1, DEFAULTS.confidence);
+  // 3. Property and strict type validation
+  for (const key of Object.keys(candidate)) {
+    if (!ALLOWED_KEYS.has(key)) {
+      throw new Error(`Unknown property rejected: ${key}`);
+    }
 
-  return result;
+    if (NUMERIC_FIELDS[key]) {
+      const val = candidate[key];
+      
+      // Strict type checks (no silent string coercion, no null, no NaN/Infinity)
+      if (typeof val !== 'number') {
+        throw new TypeError(`Invalid type for ${key}: expected number, got ${typeof val}`);
+      }
+      if (!Number.isFinite(val)) {
+        throw new TypeError(`Invalid numeric value for ${key}: must be finite`);
+      }
+
+      // Safe numeric clamping
+      const bounds = NUMERIC_FIELDS[key];
+      canonicalState[key] = Math.max(bounds.min, Math.min(bounds.max, val));
+    }
+  }
+
+  // 4. Numeric Defaulting (Only for missing optional numeric properties)
+  for (const [key, bounds] of Object.entries(NUMERIC_FIELDS)) {
+    if (!(key in canonicalState)) {
+      canonicalState[key] = bounds.default;
+    }
+  }
+
+  return canonicalState;
 }
 
 /**
- * Factory that creates a guaranteed-valid canonical target visual state from a candidate.
- * If validation fails after normalization, it throws an Error.
- *
- * @param {any} candidate - The prototype input candidate state.
- * @returns {any} A strictly valid canonical VisualState object.
- * @throws {Error} If validation fails.
+ * @deprecated Use createVisualState instead.
+ * Previous implementation silently dropped unknown properties.
  */
-export function createVisualState(candidate) {
-  const normalized = clampVisualState(candidate);
-
-  if (!validateVisualState(normalized)) {
-    throw new Error(`Visual State Validation Failed: candidate was normalized to ${JSON.stringify(normalized)} but does not satisfy the contract schema.`);
-  }
-
-  return normalized;
+export function clampVisualState(candidate) {
+  throw new Error("clampVisualState is deprecated. Use createVisualState() for deterministic, strict contract enforcement.");
 }
