@@ -26,11 +26,10 @@
  * No textual response renderer exists in this layer.
  */
 
-import {
-  createVisualState,
-  validateVisualState,
-  clampVisualState
-} from "./runtime/visual-state.js";
+import { createVisualState } from "./runtime/visual-state.js";
+// Note: validateVisualState/clampVisualState were imported but never called here.
+// The runtime governor for this app is exercised entirely through createVisualState
+// (see applyIntent() below), so only that is imported.
 
 // --- Localization Structure ---
 const LOCALIZATION = {
