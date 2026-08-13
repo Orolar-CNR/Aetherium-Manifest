@@ -42,11 +42,62 @@ Human Perception (Light, Particles, Motion, Morphology, Density, Energy, Color, 
 
 ---
 
-## 3. Visual State Fields and Specification
+## 3. Canonical State vs Candidate State
+
+To maintain strict contract integrity across the system boundaries, we define three distinct representations of state:
+
+1. **Candidate State**
+   * *Definition*: The incomplete, raw, or intermediate data structure produced by the Phase-0 interpreter.
+   * *Characteristics*: May contain missing properties, out-of-range numeric parameters, or other raw inputs. It has not yet been processed or verified by the safety Governor.
+
+2. **Canonical Target Visual State**
+   * *Definition*: The fully specified, strictly validated, and correctly bounded semantic state object.
+   * *Characteristics*: Guarantees that every required contract field exists, conforms to exact schema types, does not contain extraneous properties, and resides strictly within valid numeric ranges.
+
+3. **Transient Render State**
+   * *Definition*: The renderer-local, dynamically interpolated representation of the visual parameters over time.
+   * *Characteristics*: Resides purely within the rendering engine (e.g., in the canvas application loop). It smoothly transitions (interpolates/lerps) from its current frame values toward the latest Canonical Target State.
+
+### State Flow Model
+
+```
+Candidate
+    ↓
+Canonical Target State
+    ↓
+Transient Render State
+    ↓
+Particles
+```
+
+---
+
+## 4. Clamping vs Rejection Rules
+
+The safety Governor enforces absolute predictability. It uses two distinct strategies depending on the nature of input anomalies:
+
+### 4.1 Clamping (Allowed)
+Numeric parameters that are of correct types but exceed the defined contract boundaries are safely normalized:
+* `energy: 1.4` → Clamps to `1.0`
+* `energy: -0.2` → Clamps to `0.0`
+* `hue: 370` → Clamps to `360`
+* `hue: -10` → Clamps to `0`
+* `turbulence: 0.9` → Clamps to `0.65`
+
+### 4.2 Rejection (Strict Failure)
+To prevent silent corruption of semantic intent, any type discrepancy, missing structural information, or extraneous key forces an immediate validation failure and throws a clear exception:
+* **Invalid Types**: Numeric fields supplied as strings (e.g. `"0.5"`), booleans, `null`, arrays, `NaN`, or infinite values (`Infinity` / `-Infinity`) are rejected.
+* **Unknown Semantic Values**: Any value outside the strict enum options for `phase` or `shape` is rejected.
+* **Missing Semantic Fields**: Semantic fields `phase` and `shape` are mandatory; the system will never fabricate default phase/shape values from an empty or incomplete candidate.
+* **Unknown Properties**: The presence of any key not explicitly defined in the visual state schema (e.g. `{ banana: true }`) is rejected and never silently discarded.
+
+---
+
+## 5. Visual State Fields and Specification
 
 The visual state contract is specified declaratively in `contracts/visual-state.schema.json` and enforced programmatically in `runtime/visual-state.js`.
 
-### 3.1 Allowed Phases (`phase`)
+### 5.1 Allowed Phases (`phase`)
 Determines the macroscopic behavioral phase of the manifest.
 * `IDLE`: Resting state, waiting for user interaction.
 * `LISTENING`: Receptive to user touch or intent input.
@@ -56,7 +107,7 @@ Determines the macroscopic behavioral phase of the manifest.
 * `ERROR`: Critical failure state.
 * `NIRODHA`: Near-zero activity, near-void manifestation (no particle rendering).
 
-### 3.2 Allowed Shapes (`shape`)
+### 5.2 Allowed Shapes (`shape`)
 Governs the underlying geometrical field guide for particles.
 * `sphere`: Standard spherical coordinate field.
 * `triangle`: Dynamic three-sided vector coordinate field.
@@ -64,7 +115,7 @@ Governs the underlying geometrical field guide for particles.
 * `line`: Linear distribution along the horizontal axis.
 * `wave`: Sinusoidal wave morphologist.
 
-### 3.3 Numeric Parameters and Ranges
+### 5.3 Numeric Parameters and Ranges
 
 | Field | Range | Default | Purpose / Description |
 | :--- | :--- | :--- | :--- |
@@ -77,13 +128,34 @@ Governs the underlying geometrical field guide for particles.
 
 ---
 
-## 4. Architectural Guarantees
+## 6. Renderer Boundary and Local Parameters
+
+The rendering engine consumes only the Canonical Target Visual State. The renderer is strictly forbidden from independently inventing semantic values or interpreting user intent.
+
+### 6.1 Renderer-Local Parameters
+To support fluid performance and visual aesthetics, the renderer is allowed to derive or calculate local implementation parameters. These are transient, environment-dependent, or frame-specific, and **MUST NOT** be added to the canonical Visual State contract:
+* **Particle budget**: The absolute number of active particle instances (e.g., dynamically scaled based on screen area/DPR).
+* **Glow**: Radial context filter/blur/translucency coefficients.
+* **Alpha**: Translucency factors calculated per particle frame.
+* **Noise**: Vector field offsets generated during coordinate updates.
+* **Interpolation speed**: Local lerp factors based on elapsed frame time.
+* **Local animation phase**: Time-based trigonometric oscillators.
+* **Particle size**: Visual dimensions computed dynamically per particle.
+* **Internal jitter**: Frame-to-frame random offsets used for physical rendering realism.
+
+These parameters belong purely to the renderer's local execution. They do not represent stable semantic parameters in the Phase 0.1 architecture and must never be exposed in the declarative schema or canonical contract.
+
+In particular, parameters like `entropy` and `glow` are kept completely out of the canonical schema for Phase 0.1.
+
+---
+
+## 7. Architectural Guarantees
 
 ### What the Governor Guarantees
 1. **Immutability**: Input candidates are never mutated. `clampVisualState` and `createVisualState` always return new, distinct state objects.
 2. **Determinism**: Given the exact same interpreter candidate parameters, the Governor guarantees the output canonical target visual state is 100% identical.
 3. **Strict Boundaries**: Any numeric value outside its allowed bounds is safely clamped.
-4. **Structural Validity**: Any missing fields (except phase/shape which represent critical semantic categories and must be supplied) are populated with safe defaults.
+4. **Structural Validity**: Any missing optional numeric fields are populated with safe defaults.
 5. **No Silent Malformations**: Attempting to supply unsupported phases (e.g. `"BANANA"`) or shapes will result in validation failure and throw a runtime exception instead of being silently translated into arbitrary states.
 
 ### What the Renderer is Allowed to Receive
@@ -93,7 +165,7 @@ Governs the underlying geometrical field guide for particles.
 
 ---
 
-## 5. Intentionally NOT Implemented (Phase-0.1 Exclusions)
+## 8. Intentionally NOT Implemented (Phase-0.1 Exclusions)
 
 The following architectures belong to subsequent phases and are **strictly forbidden** from being implemented in Phase 0.1:
 * Large Language Models (LLM) or remote AI reasoning engines.

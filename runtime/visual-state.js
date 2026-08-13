@@ -80,27 +80,34 @@ export function validateVisualState(state) {
     return false;
   }
 
-  if (typeof state.hue !== "number" || isNaN(state.hue) || state.hue < 0 || state.hue > 360) {
+  const validateNumber = (val, min, max) => {
+    if (typeof val !== "number" || !Number.isFinite(val)) {
+      return false;
+    }
+    return val >= min && val <= max;
+  };
+
+  if (!validateNumber(state.hue, 0, 360)) {
     return false;
   }
 
-  if (typeof state.energy !== "number" || isNaN(state.energy) || state.energy < 0 || state.energy > 1) {
+  if (!validateNumber(state.energy, 0, 1)) {
     return false;
   }
 
-  if (typeof state.density !== "number" || isNaN(state.density) || state.density < 0 || state.density > 1) {
+  if (!validateNumber(state.density, 0, 1)) {
     return false;
   }
 
-  if (typeof state.turbulence !== "number" || isNaN(state.turbulence) || state.turbulence < 0 || state.turbulence > 0.65) {
+  if (!validateNumber(state.turbulence, 0, 0.65)) {
     return false;
   }
 
-  if (typeof state.coherence !== "number" || isNaN(state.coherence) || state.coherence < 0 || state.coherence > 1) {
+  if (!validateNumber(state.coherence, 0, 1)) {
     return false;
   }
 
-  if (typeof state.confidence !== "number" || isNaN(state.confidence) || state.confidence < 0 || state.confidence > 1) {
+  if (!validateNumber(state.confidence, 0, 1)) {
     return false;
   }
 
@@ -120,41 +127,65 @@ export function validateVisualState(state) {
  * @returns {any} A new normalized object.
  */
 export function clampVisualState(candidate) {
-  const safeCandidate = candidate || {};
+  if (candidate === null || typeof candidate !== "object" || Array.isArray(candidate)) {
+    throw new TypeError("Candidate must be a non-null object.");
+  }
+
+  const allowedKeys = new Set([
+    "phase",
+    "shape",
+    "hue",
+    "energy",
+    "density",
+    "turbulence",
+    "coherence",
+    "confidence"
+  ]);
+
+  // Reject unknown keys
+  for (const key of Object.keys(candidate)) {
+    if (!allowedKeys.has(key)) {
+      throw new Error(`Unknown property rejected: "${key}"`);
+    }
+  }
+
   const result = {};
 
-  // Phase
-  if ("phase" in safeCandidate) {
-    result.phase = safeCandidate.phase;
-  } else {
-    result.phase = DEFAULTS.phase;
+  // Check required semantic properties
+  if (!("phase" in candidate)) {
+    throw new Error("Missing required semantic property: phase");
   }
-
-  // Shape
-  if ("shape" in safeCandidate) {
-    result.shape = safeCandidate.shape;
-  } else {
-    result.shape = DEFAULTS.shape;
+  if (typeof candidate.phase !== "string" || !ALLOWED_PHASES.has(candidate.phase)) {
+    throw new Error(`Invalid semantic phase: "${candidate.phase}"`);
   }
+  result.phase = candidate.phase;
 
-  // Helper helper to handle numeric parsing and clamping
-  const clampField = (value, min, max, defaultVal) => {
-    if (value === undefined || value === null) {
+  if (!("shape" in candidate)) {
+    throw new Error("Missing required semantic property: shape");
+  }
+  if (typeof candidate.shape !== "string" || !ALLOWED_SHAPES.has(candidate.shape)) {
+    throw new Error(`Invalid semantic shape: "${candidate.shape}"`);
+  }
+  result.shape = candidate.shape;
+
+  // Clamping and validation helper for numeric fields
+  const processNumericField = (key, min, max, defaultVal) => {
+    if (!(key in candidate) || candidate[key] === undefined) {
       return defaultVal;
     }
-    const parsed = Number(value);
-    if (isNaN(parsed)) {
-      return defaultVal;
+    const val = candidate[key];
+    if (typeof val !== "number" || !Number.isFinite(val)) {
+      throw new TypeError(`Invalid numeric type for "${key}": expected finite number, got ${typeof val === "object" ? (val === null ? "null" : "object") : typeof val}`);
     }
-    return Math.min(max, Math.max(min, parsed));
+    return Math.min(max, Math.max(min, val));
   };
 
-  result.hue = clampField(safeCandidate.hue, 0, 360, DEFAULTS.hue);
-  result.energy = clampField(safeCandidate.energy, 0, 1, DEFAULTS.energy);
-  result.density = clampField(safeCandidate.density, 0, 1, DEFAULTS.density);
-  result.turbulence = clampField(safeCandidate.turbulence, 0, 0.65, DEFAULTS.turbulence);
-  result.coherence = clampField(safeCandidate.coherence, 0, 1, DEFAULTS.coherence);
-  result.confidence = clampField(safeCandidate.confidence, 0, 1, DEFAULTS.confidence);
+  result.hue = processNumericField("hue", 0, 360, DEFAULTS.hue);
+  result.energy = processNumericField("energy", 0, 1, DEFAULTS.energy);
+  result.density = processNumericField("density", 0, 1, DEFAULTS.density);
+  result.turbulence = processNumericField("turbulence", 0, 0.65, DEFAULTS.turbulence);
+  result.coherence = processNumericField("coherence", 0, 1, DEFAULTS.coherence);
+  result.confidence = processNumericField("confidence", 0, 1, DEFAULTS.confidence);
 
   return result;
 }
