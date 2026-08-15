@@ -6,7 +6,7 @@ Aetherium Light Manifest is a perception-oriented perceptual interface rendered 
 
 ## Current Status: Phase 0.1 — Canonical Visual State Contract
 
-Phase 0.1 establishes a strict, machine-readable visual state contract (`contracts/visual-state.schema.json`) and safety governor (`runtime/visual-state.js`) to decouple intent parsing from rendering.
+Phase 0.1 establishes a strict, machine-readable visual state contract (`contracts/visual-state.schema.json`) and visual state validator / normalizer (`runtime/visual-state.js`) to decouple intent parsing from rendering.
 
 ### Core Architectural Philosophy
 
@@ -28,7 +28,7 @@ Phase-0 Interpreter
      ↓
 Visual State Contract (JSON Schema Draft 2020-12)
      ↓
-Governor (Clamping & Validation)
+Visual State Validator / Normalizer (Clamping & Validation)
      ↓
 Light Renderer (2D HTML5 Canvas Particles)
 ```
@@ -36,7 +36,7 @@ Light Renderer (2D HTML5 Canvas Particles)
 1. **User Intent**: The raw user text input (e.g., Thai/English commands).
 2. **Phase-0 Interpreter**: High-efficiency local string-matching heuristic (no LLM, zero latency).
 3. **Visual State Contract**: Decoupled schema defining allowed phases, shapes, and numeric ranges.
-4. **Governor**: Safely clamps bounds, populates defaults, and strictly validates target state objects before submission.
+4. **Visual State Validator / Normalizer**: Safely clamps bounds, populates defaults, and strictly validates target state objects before submission.
 5. **Light Renderer**: Animates, interpolates, and renders the particles dynamically based on the governed target state.
 
 ---

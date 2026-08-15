@@ -4,10 +4,10 @@
 
 The Aetherium Visual State Contract defines the first machine-readable, canonical, and deterministic boundary between intent interpretation and perception-oriented visual manifestation.
 
-Phase 0.1 introduces a strict schema constraint, an isolated safety governor, and a pure modular validator. This decouples the responsibility of meaning interpretation and visual constraint policing from the canvas-based rendering engine.
+Phase 0.1 introduces a strict schema constraint, an isolated visual state validator / normalizer, and a pure modular validator. This decouples the responsibility of meaning interpretation and visual constraint policing from the canvas-based rendering engine.
 
 > **CRITICAL ARCHITECTURAL BOUNDARY:**
-> Phase 0.1 is **NOT** an AI reasoning engine. It is a visual-state contract and governed rendering foundation. No textual answers are returned or rendered in the visual surface. The response is represented solely through light, particle formation, motion, morphology, density, energy, and color.
+> Phase 0.1 is **NOT** an AI reasoning engine. It is a visual-state contract and validated rendering foundation. No textual answers are returned or rendered in the visual surface. The response is represented solely through light, particle formation, motion, morphology, density, energy, and color.
 
 ---
 
@@ -25,7 +25,7 @@ Prototype Intent Interpreter (app.js)
 Candidate State Object
      │
      ▼
-Governor (runtime/visual-state.js -> createVisualState())
+Visual State Validator / Normalizer (runtime/visual-state.js -> createVisualState())
      │ [normalizes, clamps, and validates the state object]
      ▼
 Canonical Target Visual State (Deterministic & Validated)
@@ -79,15 +79,15 @@ Governs the underlying geometrical field guide for particles.
 
 ## 4. Architectural Guarantees
 
-### What the Governor Guarantees
+### What the Visual State Validator / Normalizer Guarantees
 1. **Immutability**: Input candidates are never mutated. `clampVisualState` and `createVisualState` always return new, distinct state objects.
-2. **Determinism**: Given the exact same interpreter candidate parameters, the Governor guarantees the output canonical target visual state is 100% identical.
+2. **Determinism**: Given the exact same interpreter candidate parameters, the validator / normalizer guarantees the output canonical target visual state is 100% identical.
 3. **Strict Boundaries**: Any numeric value outside its allowed bounds is safely clamped.
 4. **Structural Validity**: Any missing fields (except phase/shape which represent critical semantic categories and must be supplied) are populated with safe defaults.
 5. **No Silent Malformations**: Attempting to supply unsupported phases (e.g. `"BANANA"`) or shapes will result in validation failure and throw a runtime exception instead of being silently translated into arbitrary states.
 
 ### What the Renderer is Allowed to Receive
-1. **Governed States Only**: The renderer is completely insulated from raw user intent text and semantic parsing. It only ever receives governed, valid, and fully-specified canonical target visual states.
+1. **Validated / Normalized States Only**: The renderer is completely insulated from raw user intent text and semantic parsing. It only ever receives validated, normalized, and fully-specified canonical target visual states.
 2. **Decoupled Interpolation**: The renderer is allowed to maintain its own local, transient "Current Render State" which smoothly interpolates (lerps) towards the canonical target state over time.
 3. **Derived Metrics**: Render-specific parameters like particle budget, alpha noise, glow, index-specific lightness, or circular hue interpolation are calculated locally within the renderer and do not contaminate the semantic contract.
 
