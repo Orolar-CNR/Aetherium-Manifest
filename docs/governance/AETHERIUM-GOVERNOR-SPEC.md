@@ -36,7 +36,28 @@ When evaluating candidate states, the Governor issues exactly one governance act
 
 ### 4.1 VALIDATE
 * **Definition**: Candidate state fully complies with all schema, range, and policy constraints without modification.
-* **Worked Example**: Candidate specifies `phase: "RESPONDING"`, `shape: "sphere"`, `hue: 200`, `energy: 0.5`. Governor A confirms all fields are valid and within bounds, emitting the candidate state unchanged with action `VALIDATE`.
+* **Worked Example**: Governor A receives the following `PresenceVectorCandidate` under the canonical Presence IR contract:
+
+  ```json
+  {
+    "intent": {
+      "state": "RESPONDING",
+      "phase": 0.72
+    },
+    "vector": {
+      "x": 0.20,
+      "y": -0.10,
+      "z": 0.30,
+      "phase": 4.20,
+      "confidence": 0.91,
+      "energy": 0.70,
+      "coherence": 0.88,
+      "policy_risk": 0.04
+    }
+  }
+  ```
+
+  Governor A validates the candidate against the canonical Presence IR schema, confirms the intent and vector fields are well-formed and within bounds, independently verifies the effective `policy_risk`, and emits the candidate unchanged with action `VALIDATE`.
 
 ### 4.2 CLAMP
 * **Definition**: Restricts a single field's value to its defined schema bounds (field-level bounding).
