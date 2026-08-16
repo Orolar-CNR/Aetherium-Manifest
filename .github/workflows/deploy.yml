@@ -39,15 +39,20 @@ jobs:
       - name: Validate files and contract
         run: |
           echo "Verifying presence of essential assets and contract..."
-          [ -f index.html ] || { echo "index.html is missing!"; exit 1; }
-          [ -f styles.css ] || { echo "styles.css is missing!"; exit 1; }
-          [ -f app.js ] || { echo "app.js is missing!"; exit 1; }
-          [ -f package.json ] || { echo "package.json is missing!"; exit 1; }
-          [ -f runtime/visual-state.js ] || { echo "runtime/visual-state.js is missing!"; exit 1; }
-          [ -f contracts/visual-state.schema.json ] || { echo "contracts/visual-state.schema.json is missing!"; exit 1; }
-          [ -f tests/visual-state.test.js ] || { echo "tests/visual-state.test.js is missing!"; exit 1; }
+          test -f index.html
+          test -f styles.css
+          test -f app.js
+          test -f package.json
+          test -f runtime/visual-state.js
+          test -f runtime/reference-renderer.js
+          test -f docs/testing/AETHERIUM-REFERENCE-RENDERER-CONFORMANCE.md
+          test -f contracts/visual-state.schema.json
+          test -f tests/visual-state.test.js
+          for f in idle listening processing responding warning error nirodha; do
+            test -f "tests/fixtures/visual-states/${f}.json"
+          done
           echo "Validating Canvas setup in index.html..."
-          grep -q "<canvas id=\"manifestCanvas\"></canvas>" index.html || { echo "Canvas element missing from index.html!"; exit 1; }
+          grep -q "<canvas id=\"manifestCanvas\"></canvas>" index.html
           echo "Validation completed successfully."
 
       - name: Run Tests

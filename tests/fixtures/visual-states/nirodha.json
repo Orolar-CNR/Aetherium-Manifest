@@ -1,0 +1,10 @@
+{
+  "phase": "NIRODHA",
+  "shape": "sphere",
+  "hue": 230,
+  "energy": 0.02,
+  "density": 0.12,
+  "turbulence": 0.02,
+  "coherence": 0.95,
+  "confidence": 0.9
+}

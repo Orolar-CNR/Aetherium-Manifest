@@ -1,0 +1,10 @@
+{
+  "phase": "ERROR",
+  "shape": "wave",
+  "hue": 0,
+  "energy": 0.95,
+  "density": 0.7,
+  "turbulence": 0.65,
+  "coherence": 0.2,
+  "confidence": 0.95
+}

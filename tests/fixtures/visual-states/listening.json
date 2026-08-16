@@ -1,0 +1,10 @@
+{
+  "phase": "LISTENING",
+  "shape": "sphere",
+  "hue": 195,
+  "energy": 0.3,
+  "density": 0.52,
+  "turbulence": 0.18,
+  "coherence": 0.84,
+  "confidence": 0.82
+}
