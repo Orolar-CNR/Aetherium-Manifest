@@ -8,7 +8,51 @@ Presence Intermediate Representation (Presence IR) v0.1 defines the canonical wi
 
 ## 2. Presence IR v0.1 Data Structure & Wire Specification
 
-### 2.1 Lineage and Parent Trace Identification
+### 2.1 Canonical Presence IR Envelope
+
+Presence IR v0.1 envelopes MUST conform to the following normative TypeScript data structure. Implementations MAY use host-language equivalents internally, but the JSON wire contract MUST preserve these field names, required fields, and value domains.
+
+```typescript
+type IntentState = "IDLE" | "PROCESSING" | "RESPONDING" | "ERROR";
+
+interface IntentContext {
+  state: IntentState;
+  phase: number;
+}
+
+interface PresenceVector {
+  x: number;
+  y: number;
+  z: number;
+  phase: number;
+  confidence: number;
+  energy: number;
+  coherence: number;
+  policy_risk: number;
+}
+
+interface PresenceNormalization {
+  clamped: boolean;
+  policy_version: string;
+  precision_dp: number;
+}
+
+interface PresenceIREnvelope {
+  ir_version: string;
+  tick: string; // uint64 decimal string
+  state_version: string; // uint64 decimal string
+  timestamp_ns: string; // uint64 decimal string
+  trace_id: string;
+  parent_trace_id: string | null;
+  trace_seed: string;
+  intent: IntentContext;
+  vector: PresenceVector;
+  normalization: PresenceNormalization;
+  integrity_hash: string;
+}
+```
+
+### 2.2 Lineage and Parent Trace Identification
 
 * **Single-Parent Lineage (v0.1)**:
   Presence IR v0.1 supports exactly one parent trace reference:
@@ -28,14 +72,14 @@ Presence Intermediate Representation (Presence IR) v0.1 defines the canonical wi
 
 ---
 
-### 2.2 IntentContext.phase Semantics
+### 2.3 IntentContext.phase Semantics
 
 The `phase` field within `IntentContext` specifies presentation timing guidance:
 
 ```typescript
 interface IntentContext {
-  phase: string;
-  // additional contextual metadata...
+  state: IntentState;
+  phase: number;
 }
 ```
 
@@ -57,7 +101,7 @@ interface IntentContext {
 
 ---
 
-### 2.3 Wire Transport Format for uint64 Fields
+### 2.4 Wire Transport Format for uint64 Fields
 
 All `uint64` wire fields in Presence IR (such as timestamps, state sequence ticks, or counter fields) MUST adhere to strict JSON serialization rules:
 
