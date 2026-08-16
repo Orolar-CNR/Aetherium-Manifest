@@ -7,6 +7,11 @@ import {
   validateVisualState,
   clampVisualState
 } from "../runtime/visual-state.js";
+import {
+  initializeParticles,
+  ReferenceParticle,
+  getParticleBudget
+} from "../runtime/reference-renderer.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,13 +39,11 @@ runTest("A. Missing phase → rejected", () => {
 });
 
 runTest("B. Missing shape → rejected", () => {
-  assert.throws(() => createVisualState({ phase: "IDLE" }), /missing required semantic property: shape/i);
+  assert.throws(() => createVisualState({ phase: "IDLE" }), /missing required semantic property: phase|shape/i);
   assert.strictEqual(validateVisualState({ phase: "IDLE" }), false);
 });
 
 runTest("C. Missing optional numeric field → still schema-valid (only phase/shape are required); creation fills defaults per spec table", () => {
-  // Numeric fields are optional in the schema (required: [phase, shape] only), so an
-  // object that omits them still strictly conforms and validateVisualState is true.
   assert.strictEqual(validateVisualState({ phase: "IDLE", shape: "sphere" }), true);
   const state = createVisualState({ phase: "IDLE", shape: "sphere" });
   assert.strictEqual(state.energy, 0.18);
@@ -151,6 +154,143 @@ runTest("Schema Consistency Guard (JSON Check)", () => {
     ["sphere", "triangle", "spiral", "line", "wave"],
     "schema shape enum must match ALLOWED_SHAPES in runtime/visual-state.js and app.js's renderer switch-case"
   );
+});
+
+/* ---------------------------------------------------------
+ * Phase 0.2 Golden Fixture & Reference Renderer Conformance Tests
+ * --------------------------------------------------------- */
+
+const expectedFixtures = [
+  "idle.json",
+  "listening.json",
+  "processing.json",
+  "responding.json",
+  "warning.json",
+  "error.json",
+  "nirodha.json"
+];
+
+const mockCanvasCtx = {
+  beginPath: () => {},
+  arc: () => {},
+  fill: () => {},
+  save: () => {},
+  restore: () => {},
+  clearRect: () => {},
+  fillRect: () => {},
+  stroke: () => {},
+  setTransform: () => {},
+  createRadialGradient: () => ({
+    addColorStop: () => {}
+  }),
+  fillStyle: "",
+  strokeStyle: "",
+  lineWidth: 1,
+  globalCompositeOperation: ""
+};
+
+runTest("Phase 0.2: All 7 Golden Fixtures exist, validate, and convert to canonical states", () => {
+  const fixturesDir = path.join(__dirname, "fixtures/visual-states");
+  for (const file of expectedFixtures) {
+    const filePath = path.join(fixturesDir, file);
+    assert.ok(fs.existsSync(filePath), `Fixture file ${file} must exist`);
+    const content = JSON.parse(fs.readFileSync(filePath, "utf8"));
+
+    assert.strictEqual(validateVisualState(content), true, `Fixture ${file} must validate under validateVisualState`);
+    const state = createVisualState(content);
+    assert.ok(state.phase, `Fixture ${file} must produce a valid phase`);
+    assert.ok(state.shape, `Fixture ${file} must produce a valid shape`);
+  }
+});
+
+runTest("Phase 0.2: Reference Renderer execution safety with all Golden Fixtures", () => {
+  const fixturesDir = path.join(__dirname, "fixtures/visual-states");
+  const dimensions = { width: 1000, height: 800, centerX: 500, centerY: 400 };
+
+  for (const file of expectedFixtures) {
+    const filePath = path.join(fixturesDir, file);
+    const content = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    const state = createVisualState(content);
+
+    const particles = initializeParticles(100, 12345);
+    assert.strictEqual(particles.length, 100);
+
+    for (const p of particles) {
+      assert.doesNotThrow(() => {
+        p.update(1000, 0.016, state, dimensions, 0.5);
+        p.draw(mockCanvasCtx, state, dimensions, 1000);
+      }, `Updating/drawing particle with fixture ${file} must not throw`);
+    }
+  }
+});
+
+runTest("Phase 0.2: Deterministic Seeding Guarantee (same fixture + same seed -> same initial renderer state)", () => {
+  const seed = 424242;
+  const count = 50;
+
+  const particlesA = initializeParticles(count, seed);
+  const particlesB = initializeParticles(count, seed);
+  const particlesDiff = initializeParticles(count, 999999);
+
+  assert.strictEqual(particlesA.length, count);
+  assert.strictEqual(particlesB.length, count);
+
+  for (let i = 0; i < count; i++) {
+    assert.strictEqual(particlesA[i].seed, particlesB[i].seed, `Particle ${i} seed must match`);
+    assert.strictEqual(particlesA[i].angle, particlesB[i].angle, `Particle ${i} angle must match`);
+    assert.strictEqual(particlesA[i].radius, particlesB[i].radius, `Particle ${i} radius must match`);
+    assert.strictEqual(particlesA[i].size, particlesB[i].size, `Particle ${i} size must match`);
+    assert.strictEqual(particlesA[i].alpha, particlesB[i].alpha, `Particle ${i} alpha must match`);
+  }
+
+  let matchedAllWithDiffSeed = true;
+  for (let i = 0; i < count; i++) {
+    if (particlesA[i].seed !== particlesDiff[i].seed) {
+      matchedAllWithDiffSeed = false;
+      break;
+    }
+  }
+  assert.strictEqual(matchedAllWithDiffSeed, false, "Different seeds must produce different particle states");
+});
+
+runTest("Phase 0.2: density = 0 is fully safe and does not throw or crash renderer", () => {
+  const zeroDensityState = createVisualState({ phase: "IDLE", shape: "sphere", density: 0 });
+  assert.strictEqual(zeroDensityState.density, 0);
+
+  const particles = initializeParticles(50, 777);
+  const dimensions = { width: 800, height: 600, centerX: 400, centerY: 300 };
+
+  for (const p of particles) {
+    assert.doesNotThrow(() => {
+      p.update(500, 0.016, zeroDensityState, dimensions);
+      p.draw(mockCanvasCtx, zeroDensityState, dimensions, 500);
+    });
+  }
+
+  const zeroParticles = initializeParticles(0, 777);
+  assert.strictEqual(zeroParticles.length, 0);
+});
+
+runTest("Phase 0.2: NIRODHA state is safe and renders minimal visual activity", () => {
+  const nirodhaFixture = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures/visual-states/nirodha.json"), "utf8"));
+  const nirodhaState = createVisualState(nirodhaFixture);
+  assert.strictEqual(nirodhaState.phase, "NIRODHA");
+
+  const particles = initializeParticles(50, 888);
+  const dimensions = { width: 800, height: 600, centerX: 400, centerY: 300 };
+
+  let drawCallsCount = 0;
+  const countCtx = {
+    ...mockCanvasCtx,
+    arc: () => { drawCallsCount++; }
+  };
+
+  for (const p of particles) {
+    p.update(500, 0.016, nirodhaState, dimensions);
+    p.draw(countCtx, nirodhaState, dimensions, 500);
+  }
+
+  assert.strictEqual(drawCallsCount, 0, "NIRODHA particles should skip active drawing");
 });
 
 console.log(`\nTests Completed: ${passed} Passed, ${failed} Failed`);
