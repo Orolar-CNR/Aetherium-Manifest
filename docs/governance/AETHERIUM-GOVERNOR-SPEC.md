@@ -68,8 +68,40 @@ When evaluating candidate states, the Governor issues exactly one governance act
 * **Worked Example**: Candidate requests a particle budget of `1,000,000` particles, but the target device renderer profile has a maximum capacity of `20,000`. Governor B dampens the effective particle budget to `20,000` while preserving the core visual morphology and semantic intent, emitting action `DAMPEN`.
 
 ### 4.4 FALLBACK
-* **Definition**: Candidate state is unparseable, corrupt, or structurally invalid, requiring substitution with a certified, known-safe state.
-* **Worked Example**: Candidate payload is missing the mandatory `shape` property or contains corrupt JSON syntax. Governor A replaces the payload with the canonical `IDLE` resting state (`phase: "IDLE"`, `shape: "sphere"`, `hue: 190`, `energy: 0.18`) and emits action `FALLBACK`.
+* **Definition**: Candidate state is unparseable, corrupt, or structurally invalid, requiring substitution with a certified, known-safe Presence IR envelope.
+* **Worked Example — Governor A Fallback Envelope (Malformed Input Recovery)**: Candidate input contains malformed or structurally invalid Presence IR candidate data. Governor A replaces the candidate with the following fallback envelope and emits action `FALLBACK`:
+
+  ```json
+  {
+    "ir_version": "0.1.0",
+    "tick": "0",
+    "state_version": "0",
+    "timestamp_ns": "0",
+    "trace_id": "fallback-trace-id",
+    "parent_trace_id": null,
+    "trace_seed": "fallback-trace-seed",
+    "intent": {
+      "state": "IDLE",
+      "phase": 0.0
+    },
+    "vector": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0,
+      "phase": 0.0,
+      "confidence": 0.0,
+      "energy": 0.1,
+      "coherence": 1.0,
+      "policy_risk": 0.0
+    },
+    "normalization": {
+      "clamped": true,
+      "policy_version": "1.0.0",
+      "precision_dp": 4
+    },
+    "integrity_hash": "PLACEHOLDER_BLAKE3_256_HASH"
+  }
+  ```
 
 ### 4.5 REJECT
 * **Definition**: Candidate state violates core semantic governance policy (e.g. prohibited phase transition or unauthorized command). No governed output frame is emitted.
