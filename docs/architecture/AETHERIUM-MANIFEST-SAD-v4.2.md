@@ -47,6 +47,7 @@ System Architecture Document (SAD) v4.2 establishes the specification freeze bou
 
 ### 3.2 Presence Intermediate Representation (Presence IR v0.1)
 - Serves as the canonical wire contract and intermediate state structure.
+- The Presence IR v0.1 payload, including PresenceVector and PresenceIREnvelope, is defined normatively by docs/contracts/AETHERIUM-PRESENCE-IR-SPEC.md.
 - **Lineage**: Enforces single-parent trace lineage via `parent_trace_id: string | null`. Future extension point `parent_trace_ids: string[]` is reserved for IR MAJOR version bumps.
 - **Transport**: Transports all `uint64` fields as base-10 decimal strings over JSON to avoid 64-bit IEEE-754 precision loss.
 - **Monotonic Sequence**: Maintains `state_version` as a monotonically increasing sequence strictly scoped per `trace_id`. Out-of-order frames must trigger rejection and resynchronization.
