@@ -293,5 +293,70 @@ runTest("Phase 0.2: NIRODHA state is safe and renders minimal visual activity", 
   assert.strictEqual(drawCallsCount, 0, "NIRODHA particles should skip active drawing");
 });
 
+
+/* ---------------------------------------------------------
+ * WebGPU Particle PoC Boundary Tests
+ * --------------------------------------------------------- */
+import { normalizeCapabilities, selectParticleQualityTier, validateParticleBufferSize } from "../runtime/webgpu/capabilities.js";
+import { chooseRendererBackend } from "../renderer/backend-selection.js";
+import { createInitialParticleData, requireRendererSeed, visualStateToGpuManifestParameters } from "../manifestation/webgpu-adapter.js";
+
+runTest("WebGPU: capability normalization returns app-safe values, not raw device plumbing", () => {
+  const caps = normalizeCapabilities({ device: { limits: { maxStorageBufferBindingSize: 1024 * 1024, maxBufferSize: 1024 * 1024, maxComputeWorkgroupSizeX: 64 }, features: new Set(["foo"]) }, preferredFormat: "rgba8unorm" });
+  assert.strictEqual(caps.available, true);
+  assert.strictEqual(caps.preferredFormat, "rgba8unorm");
+  assert.strictEqual(caps.limits.maxStorageBufferBindingSize, 1024 * 1024);
+  assert.deepEqual(caps.features, ["foo"]);
+});
+
+runTest("WebGPU: adapter emits only numeric GPU manifestation parameters with bounds", () => {
+  const params = visualStateToGpuManifestParameters({ phase: "WARNING", shape: "wave", turbulence: 9, energy: 2, coherence: -1, hue: 720 }, { particleCount: 10, time: 1, deltaTime: 0.5 });
+  assert.deepEqual(Object.keys(params), ["turbulence", "intensity", "coherence", "particle_count", "flow_direction", "time", "delta_time", "simulation_scale"]);
+  assert.strictEqual(params.turbulence, 0.65);
+  assert.strictEqual(params.intensity, 1);
+  assert.strictEqual(params.coherence, 0);
+  assert.strictEqual(params.delta_time, 0.1);
+  for (const value of Object.values(params)) assert.strictEqual(typeof value, "number");
+});
+
+runTest("WebGPU: explicit rendererSeed is required", () => {
+  assert.throws(() => requireRendererSeed(null), /rendererSeed/);
+  assert.throws(() => createInitialParticleData(1), /rendererSeed/);
+});
+
+runTest("WebGPU: same seed initializes deterministically and different seeds diverge", () => {
+  assert.deepEqual(Array.from(createInitialParticleData(4, 123)), Array.from(createInitialParticleData(4, 123)));
+  assert.notDeepEqual(Array.from(createInitialParticleData(4, 123)), Array.from(createInitialParticleData(4, 456)));
+});
+
+runTest("WebGPU: Canvas fallback decision is deterministic", () => {
+  assert.deepEqual(chooseRendererBackend({ requested: "canvas", navigatorRef: {} }).backend, "canvas");
+  const webgpuForced = chooseRendererBackend({ requested: "webgpu", navigatorRef: {} });
+  assert.strictEqual(webgpuForced.backend, "canvas");
+  assert.match(webgpuForced.fallbackReason, /navigator\.gpu unavailable/);
+});
+
+runTest("WebGPU: quality tier selection downgrades safely against limits", () => {
+  const tiny = normalizeCapabilities({ device: { limits: { maxStorageBufferBindingSize: 1024, maxBufferSize: 1024 } } });
+  assert.strictEqual(selectParticleQualityTier(tiny, "B").name, "fallback");
+  const tierA = normalizeCapabilities({ device: { limits: { maxStorageBufferBindingSize: 16000, maxBufferSize: 16000 } } });
+  assert.strictEqual(selectParticleQualityTier(tierA, "B").name, "A");
+  assert.strictEqual(validateParticleBufferSize(1000, tierA), true);
+});
+
+runTest("WebGPU: shader source contains no forbidden semantic strings or fields", () => {
+  const shaderPaths = [
+    path.join(__dirname, "../runtime/webgpu/compute/particle-update.wgsl"),
+    path.join(__dirname, "../runtime/webgpu/render/particle.vert.wgsl"),
+    path.join(__dirname, "../runtime/webgpu/render/particle.frag.wgsl")
+  ];
+  const forbidden = ["phase", "shape", "intent", "semantic", "governor", "policy", "LLM", "LISTENING", "PROCESSING", "RESPONDING", "WARNING", "ERROR", "NIRODHA"];
+  for (const shaderPath of shaderPaths) {
+    const source = fs.readFileSync(shaderPath, "utf8");
+    assert.match(source, /@compute|@vertex|@fragment/);
+    for (const token of forbidden) assert.strictEqual(source.includes(token), false, `${path.basename(shaderPath)} contains forbidden token ${token}`);
+  }
+});
+
 console.log(`\nTests Completed: ${passed} Passed, ${failed} Failed`);
 if (failed > 0) process.exit(1);
