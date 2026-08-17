@@ -3,8 +3,9 @@
   "version": "0.1.1",
   "type": "module",
   "scripts": {
-    "test": "node tests/visual-state.test.js",
-    "serve": "python3 -m http.server 8080"
+    "test": "node tests/visual-state.test.js && node tests/webgpu/adapter.test.js && node tests/webgpu/shader-invariants.test.js",
+    "serve": "python3 -m http.server 8080",
+    "test:webgpu": "node tests/webgpu/adapter.test.js && node tests/webgpu/shader-invariants.test.js"
   },
   "dependencies": {},
   "devDependencies": {}
