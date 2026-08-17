@@ -9,11 +9,10 @@
  */
 
 import { createVisualState } from "./runtime/visual-state.js";
-import {
-  getParticleBudget,
-  initializeParticles,
-  ReferenceParticle
-} from "./runtime/reference-renderer.js";
+import { createCanvasRenderer } from "./renderer/canvas-renderer.js";
+import { createWebGPURenderer } from "./renderer/webgpu-renderer.js";
+import { chooseRendererBackend } from "./renderer/backend-selection.js";
+import { isWebGPUAvailable } from "./runtime/webgpu/capabilities.js";
 
 // --- Localization Structure ---
 const LOCALIZATION = {
@@ -31,20 +30,11 @@ const LOCALIZATION = {
 const currentLocale = "th";
 
 const canvas = document.getElementById("manifestCanvas");
-let ctx = null;
-
-try {
-  if (canvas) {
-    ctx = canvas.getContext("2d", {
-      alpha: true,
-      desynchronized: true
-    });
-  } else {
-    console.error("Error: Canvas element with ID manifestCanvas not found.");
-  }
-} catch (e) {
-  console.error("Critical Failure: Unable to initialize Canvas 2D context.", e);
-}
+const urlParams = typeof window !== "undefined" && window.location ? new URLSearchParams(window.location.search) : null;
+const isDebugMode = urlParams ? (urlParams.get("debug") === "1" || urlParams.get("debug") === "true") : false;
+const requestedRenderer = urlParams ? (urlParams.get("renderer") || "auto") : "auto";
+const seedParam = urlParams ? urlParams.get("seed") : null;
+const rendererSeed = seedParam !== null && !Number.isNaN(parseInt(seedParam, 10)) ? parseInt(seedParam, 10) : 1337;
 
 const form = document.getElementById("intentForm");
 const input = document.getElementById("intentInput");
@@ -60,29 +50,21 @@ if (button) {
 }
 
 let dpr = Math.min(window.devicePixelRatio || 1, 2);
-
 let width = 0;
 let height = 0;
-
 let centerX = 0;
 let centerY = 0;
-
 let lastTime = performance.now();
-
 let pointerX = 0;
 let pointerY = 0;
-
 let interactionStrength = 0;
+let frameDelta = 0.016;
+let renderer = null;
+let rendererDiagnostics = null;
 
 const reducedMotion =
   window.matchMedia &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-// Check url for ?debug=1 or ?debug=true
-const urlParams = typeof window !== "undefined" && window.location ? new URLSearchParams(window.location.search) : null;
-const isDebugMode = urlParams ? (urlParams.get("debug") === "1" || urlParams.get("debug") === "true") : false;
-const seedParam = urlParams ? urlParams.get("seed") : null;
-const initialSeed = seedParam !== null && !isNaN(parseInt(seedParam, 10)) ? parseInt(seedParam, 10) : null;
 
 /* ---------------------------------------------------------
  * Runtime State
@@ -106,9 +88,6 @@ const state = {
   targetCoherence: 0.88,
   targetShape: "sphere"
 };
-
-let PARTICLE_COUNT = getParticleBudget(window.innerWidth, window.innerHeight);
-let particles = initializeParticles(PARTICLE_COUNT, initialSeed);
 
 let debugOverlayEl = null;
 let fpsCounter = 0;
@@ -137,15 +116,17 @@ if (isDebugMode) {
 
 function updateDebugOverlay() {
   if (!debugOverlayEl) return;
+  const diag = renderer?.getDiagnostics ? renderer.getDiagnostics() : rendererDiagnostics;
   debugOverlayEl.innerHTML = `
     <strong>[AETHERIUM DIAGNOSTIC]</strong><br/>
-    Phase: ${state.phase}<br/>
-    Shape: ${state.shape} (target: ${state.targetShape})<br/>
-    Target Values: H:${Math.round(state.targetHue)} E:${state.targetEnergy.toFixed(2)} D:${state.targetDensity.toFixed(2)} T:${state.targetTurbulence.toFixed(2)} C:${state.targetCoherence.toFixed(2)}<br/>
-    Current Values: H:${Math.round(state.hue)} E:${state.energy.toFixed(2)} D:${state.density.toFixed(2)} T:${state.turbulence.toFixed(2)} C:${state.coherence.toFixed(2)}<br/>
-    Particle Budget: ${PARTICLE_COUNT}<br/>
-    FPS: ${currentFps}<br/>
-    Renderer Mode: Canvas2D Reference (Phase 0.2)
+    Backend: ${diag?.backend || "uninitialized"}<br/>
+    WebGPU Available: ${isWebGPUAvailable() ? "yes" : "no"}<br/>
+    Particle Count: ${diag?.particleCount || 0}<br/>
+    Quality Tier: ${diag?.qualityTier || "none"}<br/>
+    Frame Time: ${(diag?.frameTimeMs || 0).toFixed(2)}ms<br/>
+    Initialization: ${diag?.initializationStatus || "pending"}<br/>
+    Fallback: ${diag?.fallbackReason || "none"}<br/>
+    FPS: ${currentFps}
   `;
 }
 
@@ -274,7 +255,7 @@ function applyIntent(text) {
     state.confidence = governed.confidence;
 
     interactionStrength = 1;
-    burst(1.0 + governed.energy * 1.5);
+
   } catch (e) {
     console.error("Exception handled during intent interpretation & state governance:", e);
     state.phase = "IDLE";
@@ -303,81 +284,10 @@ function updateState(dt) {
   interactionStrength *= reducedMotion ? 0.92 : 0.88;
 }
 
-const bursts = [];
-
-function burst(power) {
-  bursts.push({ radius: 10, power, life: 1 });
-  if (bursts.length > 8) bursts.shift();
-}
-
-function updateBursts() {
-  if (!ctx) return;
-  ctx.save();
-  for (const item of bursts) {
-    item.radius += item.power * 8;
-    item.life *= reducedMotion ? 0.90 : 0.94;
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, item.radius, 0, Math.PI * 2);
-    ctx.strokeStyle = `hsla(${state.hue}, 100%, 70%, ${item.life * 0.14})`;
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-  }
-  for (let i = bursts.length - 1; i >= 0; i--) {
-    if (bursts[i].life < 0.02) bursts.splice(i, 1);
-  }
-  ctx.restore();
-}
-
-function render() {
-  if (!ctx) return;
-  const time = performance.now();
-
-  ctx.clearRect(0, 0, width, height);
-
-  const auraSize = 90 + state.energy * 220;
-  const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, auraSize);
-
-  gradient.addColorStop(0, `hsla(${state.hue}, 100%, 70%, ${0.07 + state.energy * 0.05})`);
-  gradient.addColorStop(0.5, `hsla(${state.hue}, 100%, 60%, ${0.025 + state.energy * 0.025})`);
-  gradient.addColorStop(1, "rgba(0,0,0,0)");
-
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, width, height);
-
-  ctx.save();
-  ctx.globalCompositeOperation = "lighter";
-
-  const dims = { width, height, centerX, centerY };
-  for (const particle of particles) {
-    particle.update(time, frameDelta, state, dims, interactionStrength);
-    particle.draw(ctx, state, dims, time);
-  }
-
-  ctx.restore();
-
-  drawCore();
-  updateBursts();
-}
-
-function drawCore() {
-  if (!ctx) return;
-  const pulse = reducedMotion ? 1 : 1 + Math.sin(performance.now() * 0.002) * 0.08;
-  const radius = (5 + state.energy * 18) * pulse;
-
-  const glow = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius * 5);
-  glow.addColorStop(0, `hsla(${state.hue}, 100%, 100%, 0.75)`);
-  glow.addColorStop(0.25, `hsla(${state.hue}, 100%, 75%, 0.30)`);
-  glow.addColorStop(1, "rgba(0,0,0,0)");
-
-  ctx.beginPath();
-  ctx.fillStyle = glow;
-  ctx.arc(centerX, centerY, radius * 5, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.fillStyle = `hsla(${state.hue}, 100%, 96%, 0.95)`;
-  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-  ctx.fill();
+function render(now) {
+  if (!renderer) return;
+  renderer.setManifestationState(state, { time: now * 0.001, deltaTime: frameDelta });
+  renderer.render({ time: now, interactionStrength });
 }
 
 function resizeCanvas() {
@@ -392,20 +302,12 @@ function resizeCanvas() {
     canvas.style.height = `${height}px`;
   }
 
-  if (ctx) {
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-
   centerX = width / 2;
   centerY = height / 2;
   pointerX = centerX;
   pointerY = centerY;
 
-  const newBudget = getParticleBudget(width, height);
-  if (newBudget !== PARTICLE_COUNT) {
-    PARTICLE_COUNT = newBudget;
-    particles = initializeParticles(PARTICLE_COUNT, initialSeed);
-  }
+  if (renderer) renderer.resize({ width, height, dpr });
 }
 
 function updatePointer(clientX, clientY) {
@@ -418,7 +320,7 @@ function updatePointer(clientX, clientY) {
 }
 
 window.addEventListener("pointermove", (event) => { updatePointer(event.clientX, event.clientY); }, { passive: true });
-window.addEventListener("pointerdown", (event) => { updatePointer(event.clientX, event.clientY); burst(0.75); }, { passive: true });
+window.addEventListener("pointerdown", (event) => { updatePointer(event.clientX, event.clientY); }, { passive: true });
 
 if (form) {
   form.addEventListener("submit", (event) => {
@@ -439,8 +341,6 @@ if (input) {
   });
 }
 
-let frameDelta = 0.016;
-
 function frame(now) {
   const elapsed = Math.min(0.05, (now - lastTime) / 1000);
   frameDelta = elapsed;
@@ -454,7 +354,7 @@ function frame(now) {
   }
 
   updateState(elapsed);
-  render();
+  render(now);
 
   if (isDebugMode) {
     updateDebugOverlay();
@@ -472,8 +372,28 @@ function includesAny(text, values) {
   return values.some(value => text.includes(value));
 }
 
-resizeCanvas();
-window.addEventListener("resize", resizeCanvas, { passive: true });
+async function initializeRenderer() {
+  const decision = chooseRendererBackend({ requested: requestedRenderer });
+  renderer = decision.backend === "webgpu"
+    ? createWebGPURenderer({ canvas, rendererSeed })
+    : createCanvasRenderer({ canvas, rendererSeed, reducedMotion });
+  await renderer.initialize();
+  let diag = renderer.getDiagnostics();
+  if (decision.backend === "webgpu" && diag.initializationStatus !== "ready") {
+    renderer.dispose();
+    renderer = createCanvasRenderer({ canvas, rendererSeed, reducedMotion });
+    await renderer.initialize();
+    diag = { ...renderer.getDiagnostics(), fallbackReason: diag.fallbackReason || decision.fallbackReason };
+  }
+  rendererDiagnostics = { ...diag, fallbackReason: diag.fallbackReason || decision.fallbackReason };
+  resizeCanvas();
+  applyIntent("");
+  requestAnimationFrame(frame);
+}
 
-applyIntent("");
-requestAnimationFrame(frame);
+window.addEventListener("resize", resizeCanvas, { passive: true });
+initializeRenderer().catch((error) => {
+  console.error("Renderer initialization failed; falling back to Canvas2D.", error);
+  renderer = createCanvasRenderer({ canvas, rendererSeed, reducedMotion });
+  renderer.initialize().then(() => { resizeCanvas(); applyIntent(""); requestAnimationFrame(frame); });
+});
