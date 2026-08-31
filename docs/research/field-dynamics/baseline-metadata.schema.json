@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Aetherium Baseline Identity Metadata",
+  "description": "Standardized output structure from WebGPU Particle PoC for reproducibility and benchmarking.",
+  "type": "object",
+  "required": [
+    "baseline_id",
+    "experiment_id",
+    "timestamp",
+    "environment",
+    "inputs",
+    "execution",
+    "metrics",
+    "output_characteristics"
+  ],
+  "properties": {
+    "baseline_id": {
+      "type": "string",
+      "description": "Unique identifier for this baseline capture (e.g., UUID)."
+    },
+    "experiment_id": {
+      "type": "string",
+      "description": "Reference to the associated research experiment (e.g., 'EXP-FIELD-DYNAMICS-01')."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "environment": {
+      "type": "object",
+      "description": "Hardware and browser profile.",
+      "properties": {
+        "renderer_version": { "type": "string" },
+        "gpu_adapter": { "type": "string" },
+        "user_agent": { "type": "string" },
+        "device_pixel_ratio": { "type": "number" }
+      },
+      "required": ["renderer_version", "gpu_adapter"]
+    },
+    "inputs": {
+      "type": "object",
+      "description": "The exact inputs that MUST be identical across different backends.",
+      "properties": {
+        "seed": { "type": "number" },
+        "state_id": { "type": "string", "description": "Semantic state identifier" },
+        "manifest_state": {
+          "type": "object",
+          "description": "The raw semantic state values (e.g., energy, coherence).",
+          "additionalProperties": { "type": "number" }
+        },
+        "numeric_parameters": {
+          "type": "object",
+          "description": "The calculated manifestation parameters mapped from the state.",
+          "additionalProperties": { "type": "number" }
+        }
+      },
+      "required": ["seed", "state_id", "manifest_state", "numeric_parameters"]
+    },
+    "execution": {
+      "type": "object",
+      "description": "Simulation and rendering configuration.",
+      "properties": {
+        "entity_count": { "type": "integer" },
+        "simulation_time_ms": { "type": "number" },
+        "frame_count": { "type": "integer" },
+        "time_step_dt": { "type": "number" }
+      },
+      "required": ["entity_count", "simulation_time_ms", "frame_count"]
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Objective performance measurements.",
+      "properties": {
+        "avg_fps": { "type": "number" },
+        "frame_time_p50_ms": { "type": "number" },
+        "frame_time_p95_ms": { "type": "number" },
+        "gpu_compute_time_ms": { "type": "number" }
+      },
+      "required": ["frame_time_p50_ms", "frame_time_p95_ms"]
+    },
+    "output_characteristics": {
+      "type": "object",
+      "description": "Numerical footprint of the manifestation for determinism and consistency checks.",
+      "properties": {
+        "snapshot_hash": {
+          "type": "string",
+          "description": "Hash of the position buffer at the end of the simulation time."
+        },
+        "spatial_bounds": {
+          "type": "object",
+          "properties": {
+            "min": { "type": "array", "items": { "type": "number" } },
+            "max": { "type": "array", "items": { "type": "number" } }
+          }
+        },
+        "avg_velocity_magnitude": { "type": "number" }
+      }
+    }
+  }
+}
