@@ -3,9 +3,11 @@
   "version": "0.2.0",
   "type": "module",
   "scripts": {
-    "test": "node tests/visual-state.test.js && node tests/webgpu/adapter.test.js && node tests/webgpu/shader-invariants.test.js",
+    "test": "node tests/visual-state.test.js && node tests/webgpu/adapter.test.js && node tests/webgpu/shader-invariants.test.js && node tests/baseline-snapshot.test.js && node tests/perceptual-harness.test.js",
     "serve": "python3 -m http.server 8080",
-    "test:webgpu": "node tests/webgpu/adapter.test.js && node tests/webgpu/shader-invariants.test.js"
+    "test:webgpu": "node tests/webgpu/adapter.test.js && node tests/webgpu/shader-invariants.test.js",
+    "test:perceptual": "node tests/perceptual-harness.test.js",
+    "test:baseline": "node tests/baseline-snapshot.test.js"
   },
   "dependencies": {},
   "devDependencies": {}
