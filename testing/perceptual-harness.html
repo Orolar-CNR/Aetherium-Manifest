@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aetherium - Perceptual Evaluation Protocol Harness</title>
+  <style>
+    :root {
+      --bg: #0b0d14;
+      --panel-bg: rgba(22, 27, 38, 0.85);
+      --border: rgba(255, 255, 255, 0.12);
+      --accent: #4f46e5;
+      --accent-hover: #6366f1;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    header {
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--panel-bg);
+    }
+    h1 { font-size: 1.1rem; font-weight: 600; letter-spacing: 0.05em; }
+    main {
+      flex: 1;
+      display: flex;
+      position: relative;
+    }
+    #manifest-canvas {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    #harness-panel {
+      position: absolute;
+      right: 24px;
+      top: 24px;
+      width: 360px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .instruction {
+      font-size: 0.95rem;
+      line-height: 1.4;
+      color: var(--text);
+    }
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    button.state-opt {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button.state-opt:hover {
+      background: var(--accent);
+      border-color: var(--accent-hover);
+    }
+    button.state-opt.selected {
+      background: var(--accent);
+      border-color: #818cf8;
+      box-shadow: 0 0 12px rgba(79, 70, 229, 0.5);
+    }
+    .confidence-slider {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .confidence-slider input { width: 100%; }
+    .action-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    #export-area {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+    textarea {
+      width: 100%;
+      height: 180px;
+      background: rgba(0,0,0,0.5);
+      color: #10b981;
+      font-family: monospace;
+      font-size: 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px;
+      resize: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>PERCEPTUAL EVALUATION PROTOCOL HARNESS</h1>
+    <span id="backend-indicator" style="font-size:0.85rem; color:var(--text-muted);">Backend: WebGPU (Auto)</span>
+  </header>
+  <main>
+    <canvas id="manifest-canvas"></canvas>
+
+    <div id="harness-panel">
+      <div id="trial-area">
+        <div class="status-bar">
+          <span id="trial-progress">Trial 1 of 7</span>
+          <span id="trial-timer">0.0s</span>
+        </div>
+        <p class="instruction" style="margin-top:12px; margin-bottom:12px;">
+          Observe the visual manifestation on the left canvas surface. Select the semantic state that best describes what you perceive:
+        </p>
+
+        <div class="options-grid" id="options-container">
+          <!-- Dynamically populated choices -->
+        </div>
+
+        <div class="confidence-slider" style="margin-top:16px;">
+          <label for="conf-range">Confidence Rating: <span id="conf-val">3</span> / 5</label>
+          <input type="range" id="conf-range" min="1" max="5" value="3" step="1" oninput="document.getElementById('conf-val').innerText=this.value">
+        </div>
+
+        <button class="action-btn" id="submit-trial-btn" disabled>Submit Interpretation & Next</button>
+      </div>
+
+      <div id="export-area">
+        <h2>Evaluation Session Completed</h2>
+        <p class="instruction">Structured Perceptual Result Payload:</p>
+        <textarea id="result-json" readonly></textarea>
+        <button class="action-btn" id="download-json-btn">Download Structured Result JSON</button>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { PerceptualEvaluationSession } from "./perceptual-harness.js";
+    import { createWebGPURenderer } from "../renderer/webgpu-renderer.js";
+    import { createCanvasRenderer } from "../renderer/canvas-renderer.js";
+    import { chooseRendererBackend } from "../renderer/backend-selection.js";
+
+    const canvas = document.getElementById("manifest-canvas");
+    const container = document.getElementById("options-container");
+    const submitBtn = document.getElementById("submit-trial-btn");
+    const trialProgress = document.getElementById("trial-progress");
+    const trialTimer = document.getElementById("trial-timer");
+    const confRange = document.getElementById("conf-range");
+
+    const session = new PerceptualEvaluationSession({ seed: 42 });
+    let selectedChoice = null;
+    let timerInterval = null;
+    let renderer = null;
+
+    // Initialize Renderer
+    const chosen = chooseRendererBackend();
+    if (chosen.backend === "webgpu") {
+      renderer = createWebGPURenderer({ canvas, rendererSeed: 12345 });
+    } else {
+      renderer = createCanvasRenderer({ canvas, rendererSeed: 12345 });
+    }
+
+    await renderer.initialize();
+
+    function resizeCanvas() {
+      const width = canvas.clientWidth || window.innerWidth;
+      const height = canvas.clientHeight || window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+      renderer.resize({ width, height });
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    // Render loop
+    let animTime = 0;
+    function renderLoop() {
+      animTime += 0.016;
+      const trial = session.getCurrentTrial();
+      if (trial) {
+        renderer.setManifestationState(trial.manifestState, { time: animTime, deltaTime: 0.016 });
+        renderer.render();
+      }
+      requestAnimationFrame(renderLoop);
+    }
+    requestAnimationFrame(renderLoop);
+
+    const STATES = ["IDLE", "LISTENING", "PROCESSING", "RESPONDING", "WARNING", "ERROR", "NIRODHA"];
+    STATES.forEach(state => {
+      const btn = document.createElement("button");
+      btn.className = "state-opt";
+      btn.innerText = state;
+      btn.onclick = () => {
+        document.querySelectorAll(".state-opt").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        selectedChoice = state;
+        submitBtn.disabled = false;
+      };
+      container.appendChild(btn);
+    });
+
+    session.startSession();
+    updateTrialUI();
+
+    function updateTrialUI() {
+      const trial = session.getCurrentTrial();
+      if (!trial) {
+        showResults();
+        return;
+      }
+      trialProgress.innerText = `Trial ${trial.trialIndex + 1} of ${trial.totalTrials}`;
+      selectedChoice = null;
+      submitBtn.disabled = true;
+      document.querySelectorAll(".state-opt").forEach(b => b.classList.remove("selected"));
+
+      let elapsed = 0;
+      clearInterval(timerInterval);
+      trialTimer.innerText = "0.0s";
+      timerInterval = setInterval(() => {
+        elapsed += 0.1;
+        trialTimer.innerText = `${elapsed.toFixed(1)}s`;
+      }, 100);
+    }
+
+    submitBtn.onclick = () => {
+      if (!selectedChoice) return;
+      session.recordResponse({
+        participantChoice: selectedChoice,
+        confidenceScore: parseInt(confRange.value, 10)
+      });
+      updateTrialUI();
+    };
+
+    function showResults() {
+      clearInterval(timerInterval);
+      document.getElementById("trial-area").style.display = "none";
+      document.getElementById("export-area").style.display = "flex";
+      const result = session.exportStructuredResult();
+      const jsonStr = JSON.stringify(result, null, 2);
+      document.getElementById("result-json").value = jsonStr;
+
+      document.getElementById("download-json-btn").onclick = () => {
+        const blob = new Blob([jsonStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `perceptual-evaluation-${result.session_id}.json`;
+        a.click();
+      };
+    }
+  </script>
+</body>
+</html>
