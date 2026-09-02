@@ -3,8 +3,8 @@
 /*
  * AETHERIUM LIGHT MANIFEST
  *
- * Phase 0.1 / Phase 0.2
- * Manifest Interaction Surface & Reference Renderer
+ * Phase 0.1 / Phase 0.2 / Phase 0.x
+ * Manifest Interaction Surface & Reference Runtime
  */
 
 import { createVisualState } from "./runtime/visual-state.js";
@@ -12,6 +12,7 @@ import { createCanvasRenderer } from "./renderer/canvas-renderer.js";
 import { createWebGPURenderer } from "./renderer/webgpu-renderer.js";
 import { chooseRendererBackend } from "./renderer/backend-selection.js";
 import { isWebGPUAvailable } from "./runtime/webgpu/capabilities.js";
+import { TemporalSignalFusion } from "./runtime/temporal-signal-fusion.js";
 
 // --- Localization Structure ---
 const LOCALIZATION = {
@@ -19,8 +20,6 @@ const LOCALIZATION = {
     placeholder: "ส่งเจตจำนง...",
     ariaLabelInput: "บอกสิ่งที่ต้องการ",
     ariaLabelButton: "ส่งเจตจำนง",
-    feedbackAcknowledged: "รับรู้แล้ว",
-    feedbackManifesting: "กำลังเปลี่ยนคำขอให้เป็นการปรากฏ",
     voiceListening: "กำลังรับฟัง…",
     voiceError: "ไม่สามารถรับเสียงได้"
   },
@@ -28,15 +27,13 @@ const LOCALIZATION = {
     placeholder: "Send intent...",
     ariaLabelInput: "Express intent",
     ariaLabelButton: "Send intent",
-    feedbackAcknowledged: "Acknowledged",
-    feedbackManifesting: "Transforming request into manifestation",
     voiceListening: "Listening...",
     voiceError: "Voice input unavailable"
   }
 };
 const currentLocale = "th";
 
-const canvas = document.getElementById("manifestCanvas");
+const canvas = typeof document !== "undefined" ? document.getElementById("manifestCanvas") : null;
 const urlParams = typeof window !== "undefined" && window.location ? new URLSearchParams(window.location.search) : null;
 const isDebugMode = urlParams ? (urlParams.get("debug") === "1" || urlParams.get("debug") === "true") : false;
 const requestedRenderer = urlParams ? (urlParams.get("renderer") || "auto") : "auto";
@@ -44,17 +41,17 @@ const seedParam = urlParams ? urlParams.get("seed") : null;
 const rendererSeed = seedParam !== null && !Number.isNaN(parseInt(seedParam, 10)) ? parseInt(seedParam, 10) : 1337;
 
 // DOM Elements
-const form = document.getElementById("intentForm");
-const input = document.getElementById("intentInput");
-const button = document.getElementById("resonanceButton");
-const voiceButton = document.getElementById("voiceButton");
-const responseSignal = document.getElementById("responseSignal");
-const composerState = document.getElementById("composerState");
+const form = typeof document !== "undefined" ? document.getElementById("intentForm") : null;
+const input = typeof document !== "undefined" ? document.getElementById("intentInput") : null;
+const button = typeof document !== "undefined" ? document.getElementById("resonanceButton") : null;
+const voiceButton = typeof document !== "undefined" ? document.getElementById("voiceButton") : null;
+const responseSignal = typeof document !== "undefined" ? document.getElementById("responseSignal") : null;
+const composerState = typeof document !== "undefined" ? document.getElementById("composerState") : null;
 
-const diagnosticsDrawer = document.getElementById("diagnosticsDrawer");
-const openDiagnostics = document.getElementById("openDiagnostics");
-const closeDiagnostics = document.getElementById("closeDiagnostics");
-const sysLog = document.getElementById("sysLog");
+const diagnosticsDrawer = typeof document !== "undefined" ? document.getElementById("diagnosticsDrawer") : null;
+const openDiagnostics = typeof document !== "undefined" ? document.getElementById("openDiagnostics") : null;
+const closeDiagnostics = typeof document !== "undefined" ? document.getElementById("closeDiagnostics") : null;
+const sysLog = typeof document !== "undefined" ? document.getElementById("sysLog") : null;
 
 if (input) {
   input.placeholder = LOCALIZATION[currentLocale].placeholder;
@@ -65,7 +62,7 @@ if (button) {
   button.setAttribute("title", LOCALIZATION[currentLocale].ariaLabelButton);
 }
 
-let dpr = Math.min(window.devicePixelRatio || 1, 2);
+let dpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 2) : 1;
 let width = 0;
 let height = 0;
 let centerX = 0;
@@ -79,6 +76,7 @@ let renderer = null;
 let rendererDiagnostics = null;
 
 const reducedMotion =
+  typeof window !== "undefined" &&
   window.matchMedia &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -110,11 +108,29 @@ let lastFpsUpdate = performance.now();
 let currentFps = 60;
 
 /* ---------------------------------------------------------
- * Execution Log Stream (Diagnostics)
+ * Temporal Signal Fusion Layer Initialization
+ * --------------------------------------------------------- */
+
+export const signalFusion = new TemporalSignalFusion({
+  temporalWindowMs: 1500,
+  spatialRadiusPx: 180,
+  viewportGetter: () => ({ width, height }),
+  onEarlyManifestation: (signal) => {
+    if (renderer && typeof renderer.triggerEarlyManifestation === "function") {
+      renderer.triggerEarlyManifestation(signal);
+    }
+  },
+  onEpisodeCommitted: (episode) => {
+    applyEpisodeIntent(episode);
+  }
+});
+
+/* ---------------------------------------------------------
+ * Execution Log Stream (Diagnostics Only)
  * --------------------------------------------------------- */
 
 function logSystem(msg) {
-  if (!sysLog) return;
+  if (typeof document === "undefined" || !sysLog) return;
   const div = document.createElement("div");
   div.className = "log-line active";
   div.textContent = `> ${msg}`;
@@ -130,6 +146,7 @@ function logSystem(msg) {
 }
 
 function updateDiagnosticsUI() {
+  if (typeof document === "undefined") return;
   const diag = renderer?.getDiagnostics ? renderer.getDiagnostics() : rendererDiagnostics;
 
   const mBackend = document.getElementById("m-backend");
@@ -164,42 +181,51 @@ function updateDiagnosticsUI() {
 }
 
 /* ---------------------------------------------------------
- * User Feedback & Signals
+ * Typographyless Primary Surface
+ * (Textual responses are eliminated on primary canvas)
  * --------------------------------------------------------- */
 
-let responseSignalTimer = null;
-let composerStateTimer = null;
-
 function setComposerStateText(text = "") {
+  // Silent / accessibility-only update: no textual overlay on primary canvas
   if (!composerState) return;
-  composerState.textContent = text;
-  composerState.classList.toggle("show", Boolean(text));
+  composerState.setAttribute("aria-label", text);
 }
 
 function showResponseSignal(text) {
+  // Silent / accessibility-only update: no textual overlay on primary canvas
   if (!responseSignal) return;
-  responseSignal.textContent = text;
-  responseSignal.classList.add("show");
-
-  window.clearTimeout(responseSignalTimer);
-  responseSignalTimer = window.setTimeout(() => {
-    responseSignal.classList.remove("show");
-  }, 2200);
+  responseSignal.setAttribute("aria-label", text);
 }
 
 /* ---------------------------------------------------------
  * Phase-0 Intent Interpreter
  * --------------------------------------------------------- */
 
-function interpretIntent(text) {
-  const normalized = text.trim().toLowerCase();
+export function interpretIntent(text, episode = null) {
+  const normalized = (text || "").trim().toLowerCase();
 
-  if (!normalized) {
+  let spatialEnergyBoost = 0;
+  let spatialTurbulenceBoost = 0;
+  let gestureShapeHint = null;
+
+  if (episode && episode.spatial_context) {
+    const { max_distance, path_length } = episode.spatial_context;
+    if (path_length > 180 || max_distance > 150) {
+      spatialEnergyBoost = 0.25;
+      spatialTurbulenceBoost = 0.15;
+      gestureShapeHint = "spiral";
+    } else if (path_length > 60) {
+      spatialEnergyBoost = 0.12;
+      gestureShapeHint = "wave";
+    }
+  }
+
+  if (!normalized && !gestureShapeHint) {
     return {
       phase: "IDLE",
       shape: "sphere",
       hue: 190,
-      energy: 0.18,
+      energy: Math.min(1.0, 0.18 + spatialEnergyBoost),
       density: 0.50,
       turbulence: 0.08,
       coherence: 0.90,
@@ -210,11 +236,11 @@ function interpretIntent(text) {
   if (includesAny(normalized, ["ฟัง", "ฟังฉัน", "ฟังเสียง", "listen", "hello", "สวัสดี"])) {
     return {
       phase: "LISTENING",
-      shape: "sphere",
+      shape: gestureShapeHint || "sphere",
       hue: 195,
-      energy: 0.30,
+      energy: Math.min(1.0, 0.30 + spatialEnergyBoost),
       density: 0.52,
-      turbulence: 0.18,
+      turbulence: 0.18 + spatialTurbulenceBoost,
       coherence: 0.84,
       confidence: 0.82
     };
@@ -223,11 +249,11 @@ function interpretIntent(text) {
   if (includesAny(normalized, ["คิด", "วิเคราะห์", "เหตุผล", "reason", "think", "analyze"])) {
     return {
       phase: "PROCESSING",
-      shape: "spiral",
+      shape: gestureShapeHint || "spiral",
       hue: 268,
-      energy: 0.76,
+      energy: Math.min(1.0, 0.76 + spatialEnergyBoost),
       density: 0.78,
-      turbulence: 0.32,
+      turbulence: 0.32 + spatialTurbulenceBoost,
       coherence: 0.74,
       confidence: 0.78
     };
@@ -238,7 +264,7 @@ function interpretIntent(text) {
       phase: "RESPONDING",
       shape: "triangle",
       hue: 215,
-      energy: 0.86,
+      energy: Math.min(1.0, 0.86 + spatialEnergyBoost),
       density: 0.86,
       turbulence: 0.24,
       coherence: 0.88,
@@ -251,7 +277,7 @@ function interpretIntent(text) {
       phase: "PROCESSING",
       shape: "wave",
       hue: 280,
-      energy: 0.90,
+      energy: Math.min(1.0, 0.90 + spatialEnergyBoost),
       density: 0.80,
       turbulence: 0.60,
       coherence: 0.50,
@@ -277,7 +303,7 @@ function interpretIntent(text) {
       phase: "WARNING",
       shape: "wave",
       hue: 12,
-      energy: 0.92,
+      energy: Math.min(1.0, 0.92 + spatialEnergyBoost),
       density: 0.62,
       turbulence: 0.65,
       coherence: 0.38,
@@ -290,7 +316,7 @@ function interpretIntent(text) {
       phase: "RESPONDING",
       shape: "line",
       hue: 175,
-      energy: 0.64,
+      energy: Math.min(1.0, 0.64 + spatialEnergyBoost),
       density: 0.72,
       turbulence: 0.20,
       coherence: 0.86,
@@ -300,11 +326,11 @@ function interpretIntent(text) {
 
   return {
     phase: "RESPONDING",
-    shape: "sphere",
+    shape: gestureShapeHint || "sphere",
     hue: 205,
-    energy: 0.42,
+    energy: Math.min(1.0, 0.42 + spatialEnergyBoost),
     density: 0.58,
-    turbulence: 0.20,
+    turbulence: 0.20 + spatialTurbulenceBoost,
     coherence: 0.72,
     confidence: 0.46
   };
@@ -314,24 +340,22 @@ function submitIntent(text) {
   const clean = text.trim();
   if (!clean) return;
 
-  logSystem(`[INPUT] intent received: "${clean}"`);
+  logSystem(`[INPUT] text signal submitted: "${clean}"`);
 
-  showResponseSignal(LOCALIZATION[currentLocale].feedbackAcknowledged);
-  setComposerStateText(LOCALIZATION[currentLocale].feedbackManifesting);
-
-  applyIntent(clean);
-
-  window.clearTimeout(composerStateTimer);
-  composerStateTimer = window.setTimeout(() => {
-    setComposerStateText("");
-  }, 1200);
+  signalFusion.ingest({
+    signal_type: "text.submit",
+    source: "text",
+    event_time: typeof performance !== "undefined" ? performance.now() : Date.now(),
+    text: clean
+  });
 
   if (input) input.focus();
 }
 
-function applyIntent(text) {
+export function applyEpisodeIntent(episode) {
   try {
-    const candidate = interpretIntent(text);
+    const text = episode.primary_text || "";
+    const candidate = interpretIntent(text, episode);
     const governed = createVisualState(candidate);
 
     state.phase = governed.phase;
@@ -343,11 +367,11 @@ function applyIntent(text) {
     state.targetCoherence = governed.coherence;
     state.confidence = governed.confidence;
 
-    interactionStrength = 1;
+    interactionStrength = 1.0;
 
-    logSystem(`[STATE] updated phase=${governed.phase} shape=${governed.shape} hue=${governed.hue}`);
+    logSystem(`[EPISODE] ${episode.episode_id} committed -> phase=${governed.phase} shape=${governed.shape} hue=${governed.hue}`);
   } catch (e) {
-    console.error("Exception handled during intent interpretation & state governance:", e);
+    console.error("Exception handled during episode intent governance:", e);
     state.phase = "IDLE";
     state.targetShape = "sphere";
     state.targetHue = 190;
@@ -355,6 +379,19 @@ function applyIntent(text) {
     state.targetDensity = 0.55;
     state.targetTurbulence = 0.10;
     state.targetCoherence = 0.88;
+  }
+}
+
+export function applyIntent(text) {
+  const signal = {
+    signal_type: "text.submit",
+    source: "text",
+    event_time: typeof performance !== "undefined" ? performance.now() : Date.now(),
+    text
+  };
+  const { episode } = signalFusion.ingest(signal);
+  if (episode) {
+    signalFusion.commitActiveEpisode();
   }
 }
 
@@ -377,14 +414,13 @@ function setListeningState(listening) {
   if (!voiceButton) return;
   voiceButton.classList.toggle("listening", listening);
   voiceButton.setAttribute("aria-label", listening ? "หยุดรับเสียง" : "เริ่มรับเสียง");
-  setComposerStateText(listening ? LOCALIZATION[currentLocale].voiceListening : "");
 }
 
 function setupWebSpeech() {
   if (!voiceButton) return;
 
   const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
+    typeof window !== "undefined" && (window.SpeechRecognition || window.webkitSpeechRecognition);
 
   if (!SpeechRecognition) {
     voiceButton.style.display = "none";
@@ -400,6 +436,11 @@ function setupWebSpeech() {
   recognition.onstart = () => {
     setListeningState(true);
     logSystem("[VOICE] recognition started");
+    signalFusion.ingest({
+      signal_type: "voice.start",
+      source: "voice",
+      event_time: typeof performance !== "undefined" ? performance.now() : Date.now()
+    });
   };
 
   recognition.onresult = (event) => {
@@ -416,15 +457,18 @@ function setupWebSpeech() {
       setListeningState(false);
       if (phrase) {
         if (input) input.value = "";
-        submitIntent(phrase);
+        signalFusion.ingest({
+          signal_type: "voice.final",
+          source: "voice",
+          event_time: typeof performance !== "undefined" ? performance.now() : Date.now(),
+          text: phrase
+        });
       }
     }
   };
 
   recognition.onerror = (err) => {
     setListeningState(false);
-    setComposerStateText("");
-    showResponseSignal(LOCALIZATION[currentLocale].voiceError);
     logSystem(`[VOICE] error: ${err.error || "unknown"}`);
   };
 
@@ -480,15 +524,17 @@ function setupDiagnosticsDrawer() {
  * Keyboard Navigation & Shortcuts
  * --------------------------------------------------------- */
 
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
-    if (diagnosticsDrawer && diagnosticsDrawer.classList.contains("open")) {
-      closeDiagnosticsDrawer();
-    } else if (input) {
-      input.focus();
+if (typeof document !== "undefined") {
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      if (diagnosticsDrawer && diagnosticsDrawer.classList.contains("open")) {
+        closeDiagnosticsDrawer();
+      } else if (input) {
+        input.focus();
+      }
     }
-  }
-});
+  });
+}
 
 /* ---------------------------------------------------------
  * Rendering & Animation Loop
@@ -517,6 +563,7 @@ function render(now) {
 }
 
 function resizeCanvas() {
+  if (typeof window === "undefined") return;
   dpr = Math.min(window.devicePixelRatio || 1, 2);
   width = window.innerWidth;
   height = window.innerHeight;
@@ -542,11 +589,58 @@ function updatePointer(clientX, clientY) {
   const dx = pointerX - centerX;
   const dy = pointerY - centerY;
   const distance = Math.hypot(dx, dy);
-  interactionStrength = Math.min(1, distance / Math.max(width, height));
+  interactionStrength = Math.min(1, distance / Math.max(width || 1, height || 1));
 }
 
-window.addEventListener("pointermove", (event) => { updatePointer(event.clientX, event.clientY); }, { passive: true });
-window.addEventListener("pointerdown", (event) => { updatePointer(event.clientX, event.clientY); }, { passive: true });
+// --- Pointer & Touch Event Handlers ---
+if (typeof window !== "undefined") {
+  window.addEventListener("pointermove", (event) => {
+    updatePointer(event.clientX, event.clientY);
+    const rect = canvas ? canvas.getBoundingClientRect() : { left: 0, top: 0 };
+    signalFusion.ingest({
+      signal_type: "pointer.move",
+      source: "pointer",
+      event_time: event.timeStamp || performance.now(),
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+      metadata: { pointerId: event.pointerId, pointerType: event.pointerType }
+    });
+  }, { passive: true });
+
+  window.addEventListener("pointerdown", (event) => {
+    updatePointer(event.clientX, event.clientY);
+    const rect = canvas ? canvas.getBoundingClientRect() : { left: 0, top: 0 };
+    signalFusion.ingest({
+      signal_type: "pointer.down",
+      source: "pointer",
+      event_time: event.timeStamp || performance.now(),
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+      metadata: { pointerId: event.pointerId, pointerType: event.pointerType, button: event.button }
+    });
+  }, { passive: true });
+
+  window.addEventListener("pointerup", (event) => {
+    const rect = canvas ? canvas.getBoundingClientRect() : { left: 0, top: 0 };
+    signalFusion.ingest({
+      signal_type: "pointer.up",
+      source: "pointer",
+      event_time: event.timeStamp || performance.now(),
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+      metadata: { pointerId: event.pointerId, pointerType: event.pointerType }
+    });
+  }, { passive: true });
+
+  window.addEventListener("pointercancel", (event) => {
+    signalFusion.ingest({
+      signal_type: "pointer.cancel",
+      source: "pointer",
+      event_time: event.timeStamp || performance.now(),
+      metadata: { pointerId: event.pointerId }
+    });
+  }, { passive: true });
+}
 
 if (form) {
   form.addEventListener("submit", (event) => {
@@ -584,7 +678,9 @@ function frame(now) {
   render(now);
   updateDiagnosticsUI();
 
-  requestAnimationFrame(frame);
+  if (typeof requestAnimationFrame !== "undefined") {
+    requestAnimationFrame(frame);
+  }
 }
 
 function lerpAngle(a, b, t) {
@@ -613,21 +709,27 @@ async function initializeRenderer() {
   resizeCanvas();
   applyIntent("");
   logSystem(`[BOOT] Manifest surface initialized (${diag.backend})`);
-  requestAnimationFrame(frame);
+  if (typeof requestAnimationFrame !== "undefined") {
+    requestAnimationFrame(frame);
+  }
 }
 
-window.addEventListener("resize", resizeCanvas, { passive: true });
+if (typeof window !== "undefined") {
+  window.addEventListener("resize", resizeCanvas, { passive: true });
 
-setupWebSpeech();
-setupDiagnosticsDrawer();
+  setupWebSpeech();
+  setupDiagnosticsDrawer();
 
-initializeRenderer().catch((error) => {
-  console.error("Renderer initialization failed; falling back to Canvas2D.", error);
-  renderer = createCanvasRenderer({ canvas, rendererSeed, reducedMotion });
-  renderer.initialize().then(() => {
-    resizeCanvas();
-    applyIntent("");
-    logSystem("[BOOT] Fallback Canvas2D initialized");
-    requestAnimationFrame(frame);
+  initializeRenderer().catch((error) => {
+    console.error("Renderer initialization failed; falling back to Canvas2D.", error);
+    renderer = createCanvasRenderer({ canvas, rendererSeed, reducedMotion });
+    renderer.initialize().then(() => {
+      resizeCanvas();
+      applyIntent("");
+      logSystem("[BOOT] Fallback Canvas2D initialized");
+      if (typeof requestAnimationFrame !== "undefined") {
+        requestAnimationFrame(frame);
+      }
+    });
   });
-});
+}
