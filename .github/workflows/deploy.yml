@@ -51,14 +51,21 @@ jobs:
           for f in idle listening processing responding warning error nirodha; do
             test -f "tests/fixtures/visual-states/${f}.json"
           done
-          echo "Validating Canvas setup in index.html..."
-          grep -q "<canvas id=\"manifestCanvas\"></canvas>" index.html
+          echo "Validating Canvas and primary user contact surface in index.html..."
+          grep -q 'id="manifestCanvas"' index.html
+          grep -q 'id="intentForm"' index.html
+          grep -q 'id="intentInput"' index.html
+          grep -q 'id="voiceButton"' index.html
+          grep -q 'id="resonanceButton"' index.html
+          grep -q 'id="responseSignal"' index.html
+          grep -q 'id="diagnosticsDrawer"' index.html
+          grep -q 'id="openDiagnostics"' index.html
           echo "Validation completed successfully."
 
       - name: Run Tests
         run: |
-          echo "Executing contract tests..."
-          node tests/visual-state.test.js
+          echo "Executing test suite..."
+          npm test
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5

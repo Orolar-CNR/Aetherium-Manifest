@@ -4,8 +4,7 @@
  * AETHERIUM LIGHT MANIFEST
  *
  * Phase 0.1 / Phase 0.2
- * Prototype Semantic Interpreter / Phase-0 Intent Interpreter
- * Reference Renderer Conformance Surface
+ * Manifest Interaction Surface & Reference Renderer
  */
 
 import { createVisualState } from "./runtime/visual-state.js";
@@ -18,13 +17,21 @@ import { isWebGPUAvailable } from "./runtime/webgpu/capabilities.js";
 const LOCALIZATION = {
   th: {
     placeholder: "ส่งเจตจำนง...",
-    ariaLabelInput: "ส่งเจตจำนง",
-    ariaLabelButton: "ส่งเจตจำนง"
+    ariaLabelInput: "บอกสิ่งที่ต้องการ",
+    ariaLabelButton: "ส่งเจตจำนง",
+    feedbackAcknowledged: "รับรู้แล้ว",
+    feedbackManifesting: "กำลังเปลี่ยนคำขอให้เป็นการปรากฏ",
+    voiceListening: "กำลังรับฟัง…",
+    voiceError: "ไม่สามารถรับเสียงได้"
   },
   en: {
     placeholder: "Send intent...",
-    ariaLabelInput: "Send intent",
-    ariaLabelButton: "Send intent"
+    ariaLabelInput: "Express intent",
+    ariaLabelButton: "Send intent",
+    feedbackAcknowledged: "Acknowledged",
+    feedbackManifesting: "Transforming request into manifestation",
+    voiceListening: "Listening...",
+    voiceError: "Voice input unavailable"
   }
 };
 const currentLocale = "th";
@@ -36,14 +43,23 @@ const requestedRenderer = urlParams ? (urlParams.get("renderer") || "auto") : "a
 const seedParam = urlParams ? urlParams.get("seed") : null;
 const rendererSeed = seedParam !== null && !Number.isNaN(parseInt(seedParam, 10)) ? parseInt(seedParam, 10) : 1337;
 
+// DOM Elements
 const form = document.getElementById("intentForm");
 const input = document.getElementById("intentInput");
+const button = document.getElementById("resonanceButton");
+const voiceButton = document.getElementById("voiceButton");
+const responseSignal = document.getElementById("responseSignal");
+const composerState = document.getElementById("composerState");
+
+const diagnosticsDrawer = document.getElementById("diagnosticsDrawer");
+const openDiagnostics = document.getElementById("openDiagnostics");
+const closeDiagnostics = document.getElementById("closeDiagnostics");
+const sysLog = document.getElementById("sysLog");
 
 if (input) {
   input.placeholder = LOCALIZATION[currentLocale].placeholder;
   input.setAttribute("aria-label", LOCALIZATION[currentLocale].ariaLabelInput);
 }
-const button = document.getElementById("resonanceButton");
 if (button) {
   button.setAttribute("aria-label", LOCALIZATION[currentLocale].ariaLabelButton);
   button.setAttribute("title", LOCALIZATION[currentLocale].ariaLabelButton);
@@ -89,45 +105,86 @@ const state = {
   targetShape: "sphere"
 };
 
-let debugOverlayEl = null;
 let fpsCounter = 0;
 let lastFpsUpdate = performance.now();
 let currentFps = 60;
 
-if (isDebugMode) {
-  debugOverlayEl = document.createElement("div");
-  debugOverlayEl.id = "aetherium-debug-overlay";
-  debugOverlayEl.style.position = "fixed";
-  debugOverlayEl.style.top = "12px";
-  debugOverlayEl.style.left = "12px";
-  debugOverlayEl.style.padding = "10px 14px";
-  debugOverlayEl.style.background = "rgba(2, 2, 4, 0.85)";
-  debugOverlayEl.style.border = "1px solid rgba(255, 255, 255, 0.15)";
-  debugOverlayEl.style.borderRadius = "6px";
-  debugOverlayEl.style.color = "#00f0ff";
-  debugOverlayEl.style.fontFamily = "monospace";
-  debugOverlayEl.style.fontSize = "12px";
-  debugOverlayEl.style.lineHeight = "1.5";
-  debugOverlayEl.style.pointerEvents = "none";
-  debugOverlayEl.style.zIndex = "99999";
-  debugOverlayEl.style.backdropFilter = "blur(8px)";
-  document.body.appendChild(debugOverlayEl);
+/* ---------------------------------------------------------
+ * Execution Log Stream (Diagnostics)
+ * --------------------------------------------------------- */
+
+function logSystem(msg) {
+  if (!sysLog) return;
+  const div = document.createElement("div");
+  div.className = "log-line active";
+  div.textContent = `> ${msg}`;
+  sysLog.appendChild(div);
+
+  while (sysLog.children.length > 12) {
+    sysLog.removeChild(sysLog.firstChild);
+  }
+
+  Array.from(sysLog.children).forEach((child) => child.classList.remove("active"));
+  div.classList.add("active");
+  sysLog.scrollTop = sysLog.scrollHeight;
 }
 
-function updateDebugOverlay() {
-  if (!debugOverlayEl) return;
+function updateDiagnosticsUI() {
   const diag = renderer?.getDiagnostics ? renderer.getDiagnostics() : rendererDiagnostics;
-  debugOverlayEl.innerHTML = `
-    <strong>[AETHERIUM DIAGNOSTIC]</strong><br/>
-    Backend: ${diag?.backend || "uninitialized"}<br/>
-    WebGPU Available: ${isWebGPUAvailable() ? "yes" : "no"}<br/>
-    Particle Count: ${diag?.particleCount || 0}<br/>
-    Quality Tier: ${diag?.qualityTier || "none"}<br/>
-    Frame Time: ${(diag?.frameTimeMs || 0).toFixed(2)}ms<br/>
-    Initialization: ${diag?.initializationStatus || "pending"}<br/>
-    Fallback: ${diag?.fallbackReason || "none"}<br/>
-    FPS: ${currentFps}
-  `;
+
+  const mBackend = document.getElementById("m-backend");
+  if (mBackend) mBackend.textContent = diag?.backend || "Canvas2D";
+
+  const mParticles = document.getElementById("m-particles");
+  if (mParticles) mParticles.textContent = (diag?.particleCount || 0).toLocaleString();
+
+  const mFps = document.getElementById("m-fps");
+  if (mFps) mFps.textContent = currentFps.toString();
+
+  const mPhase = document.getElementById("m-phase");
+  if (mPhase) mPhase.textContent = state.phase;
+
+  const mStress = document.getElementById("m-stress");
+  if (mStress) mStress.textContent = (state.entropy * 0.5).toFixed(2);
+
+  const mEntropy = document.getElementById("m-entropy");
+  if (mEntropy) mEntropy.textContent = state.entropy.toFixed(2);
+
+  const mCoherence = document.getElementById("m-coherence");
+  if (mCoherence) mCoherence.textContent = state.coherence.toFixed(2);
+
+  const mArousal = document.getElementById("m-arousal");
+  if (mArousal) mArousal.textContent = state.energy.toFixed(2);
+
+  const mConf = document.getElementById("m-conf");
+  if (mConf) mConf.textContent = state.confidence.toFixed(2);
+
+  const mRisk = document.getElementById("m-risk");
+  if (mRisk) mRisk.textContent = "0.00";
+}
+
+/* ---------------------------------------------------------
+ * User Feedback & Signals
+ * --------------------------------------------------------- */
+
+let responseSignalTimer = null;
+let composerStateTimer = null;
+
+function setComposerStateText(text = "") {
+  if (!composerState) return;
+  composerState.textContent = text;
+  composerState.classList.toggle("show", Boolean(text));
+}
+
+function showResponseSignal(text) {
+  if (!responseSignal) return;
+  responseSignal.textContent = text;
+  responseSignal.classList.add("show");
+
+  window.clearTimeout(responseSignalTimer);
+  responseSignalTimer = window.setTimeout(() => {
+    responseSignal.classList.remove("show");
+  }, 2200);
 }
 
 /* ---------------------------------------------------------
@@ -176,7 +233,7 @@ function interpretIntent(text) {
     };
   }
 
-  if (includesAny(normalized, ["สร้าง", "สร้างให้", "generate", "create", "ออกแบบ", "design"])) {
+  if (includesAny(normalized, ["สามเหลี่ยม", "สร้าง", "สร้างให้", "generate", "create", "ออกแบบ", "design"])) {
     return {
       phase: "RESPONDING",
       shape: "triangle",
@@ -189,7 +246,20 @@ function interpretIntent(text) {
     };
   }
 
-  if (includesAny(normalized, ["หยุด", "พัก", "หลับ", "sleep", "rest", "nirodha"])) {
+  if (includesAny(normalized, ["พายุ", "วุ่นวาย", "vortex", "storm", "turbulence"])) {
+    return {
+      phase: "PROCESSING",
+      shape: "wave",
+      hue: 280,
+      energy: 0.90,
+      density: 0.80,
+      turbulence: 0.60,
+      coherence: 0.50,
+      confidence: 0.80
+    };
+  }
+
+  if (includesAny(normalized, ["หยุด", "พัก", "ดับ", "สงบ", "sleep", "rest", "nirodha"])) {
     return {
       phase: "NIRODHA",
       shape: "sphere",
@@ -202,14 +272,14 @@ function interpretIntent(text) {
     };
   }
 
-  if (includesAny(normalized, ["อันตราย", "ผิดพลาด", "error", "warning", "danger"])) {
+  if (includesAny(normalized, ["อันตราย", "ผิดพลาด", "พัง", "error", "warning", "danger"])) {
     return {
       phase: "WARNING",
       shape: "wave",
       hue: 12,
       energy: 0.92,
       density: 0.62,
-      turbulence: 0.70,
+      turbulence: 0.65,
       coherence: 0.38,
       confidence: 0.90
     };
@@ -240,6 +310,25 @@ function interpretIntent(text) {
   };
 }
 
+function submitIntent(text) {
+  const clean = text.trim();
+  if (!clean) return;
+
+  logSystem(`[INPUT] intent received: "${clean}"`);
+
+  showResponseSignal(LOCALIZATION[currentLocale].feedbackAcknowledged);
+  setComposerStateText(LOCALIZATION[currentLocale].feedbackManifesting);
+
+  applyIntent(clean);
+
+  window.clearTimeout(composerStateTimer);
+  composerStateTimer = window.setTimeout(() => {
+    setComposerStateText("");
+  }, 1200);
+
+  if (input) input.focus();
+}
+
 function applyIntent(text) {
   try {
     const candidate = interpretIntent(text);
@@ -256,6 +345,7 @@ function applyIntent(text) {
 
     interactionStrength = 1;
 
+    logSystem(`[STATE] updated phase=${governed.phase} shape=${governed.shape} hue=${governed.hue}`);
   } catch (e) {
     console.error("Exception handled during intent interpretation & state governance:", e);
     state.phase = "IDLE";
@@ -267,6 +357,142 @@ function applyIntent(text) {
     state.targetCoherence = 0.88;
   }
 }
+
+/* ---------------------------------------------------------
+ * Web Speech API Integration
+ * --------------------------------------------------------- */
+
+let recognition = null;
+let isListening = false;
+
+function stopVoice() {
+  if (!recognition) return;
+  try {
+    recognition.stop();
+  } catch (_) {}
+}
+
+function setListeningState(listening) {
+  isListening = listening;
+  if (!voiceButton) return;
+  voiceButton.classList.toggle("listening", listening);
+  voiceButton.setAttribute("aria-label", listening ? "หยุดรับเสียง" : "เริ่มรับเสียง");
+  setComposerStateText(listening ? LOCALIZATION[currentLocale].voiceListening : "");
+}
+
+function setupWebSpeech() {
+  if (!voiceButton) return;
+
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    voiceButton.style.display = "none";
+    voiceButton.setAttribute("aria-hidden", "true");
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.lang = currentLocale === "th" ? "th-TH" : "en-US";
+  recognition.interimResults = true;
+  recognition.continuous = false;
+
+  recognition.onstart = () => {
+    setListeningState(true);
+    logSystem("[VOICE] recognition started");
+  };
+
+  recognition.onresult = (event) => {
+    let transcript = "";
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript;
+    }
+
+    if (input) input.value = transcript;
+
+    const last = event.results[event.results.length - 1];
+    if (last && last.isFinal) {
+      const phrase = transcript.trim();
+      setListeningState(false);
+      if (phrase) {
+        if (input) input.value = "";
+        submitIntent(phrase);
+      }
+    }
+  };
+
+  recognition.onerror = (err) => {
+    setListeningState(false);
+    setComposerStateText("");
+    showResponseSignal(LOCALIZATION[currentLocale].voiceError);
+    logSystem(`[VOICE] error: ${err.error || "unknown"}`);
+  };
+
+  recognition.onend = () => {
+    setListeningState(false);
+    logSystem("[VOICE] recognition ended");
+  };
+
+  voiceButton.addEventListener("click", () => {
+    if (isListening) {
+      stopVoice();
+      return;
+    }
+    try {
+      recognition.start();
+    } catch (e) {
+      console.warn("Speech recognition failed to start:", e);
+    }
+  });
+}
+
+/* ---------------------------------------------------------
+ * Diagnostics Drawer Controls
+ * --------------------------------------------------------- */
+
+function openDiagnosticsDrawer() {
+  if (!diagnosticsDrawer) return;
+  diagnosticsDrawer.classList.add("open");
+  diagnosticsDrawer.setAttribute("aria-hidden", "false");
+  if (closeDiagnostics) closeDiagnostics.focus();
+  logSystem("[DIAG] drawer opened");
+}
+
+function closeDiagnosticsDrawer() {
+  if (!diagnosticsDrawer) return;
+  diagnosticsDrawer.classList.remove("open");
+  diagnosticsDrawer.setAttribute("aria-hidden", "true");
+  if (input) input.focus();
+}
+
+function setupDiagnosticsDrawer() {
+  if (openDiagnostics) openDiagnostics.addEventListener("click", openDiagnosticsDrawer);
+  if (closeDiagnostics) closeDiagnostics.addEventListener("click", closeDiagnosticsDrawer);
+
+  if (diagnosticsDrawer) {
+    diagnosticsDrawer.addEventListener("click", (e) => {
+      if (e.target === diagnosticsDrawer) closeDiagnosticsDrawer();
+    });
+  }
+}
+
+/* ---------------------------------------------------------
+ * Keyboard Navigation & Shortcuts
+ * --------------------------------------------------------- */
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    if (diagnosticsDrawer && diagnosticsDrawer.classList.contains("open")) {
+      closeDiagnosticsDrawer();
+    } else if (input) {
+      input.focus();
+    }
+  }
+});
+
+/* ---------------------------------------------------------
+ * Rendering & Animation Loop
+ * --------------------------------------------------------- */
 
 function updateState(dt) {
   const smoothing = reducedMotion ? 0.05 : 1 - Math.pow(0.001, dt);
@@ -326,8 +552,9 @@ if (form) {
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     if (input) {
-      applyIntent(input.value);
-      input.select();
+      const rawText = input.value;
+      input.value = "";
+      submitIntent(rawText);
     }
   });
 }
@@ -355,10 +582,7 @@ function frame(now) {
 
   updateState(elapsed);
   render(now);
-
-  if (isDebugMode) {
-    updateDebugOverlay();
-  }
+  updateDiagnosticsUI();
 
   requestAnimationFrame(frame);
 }
@@ -388,12 +612,22 @@ async function initializeRenderer() {
   rendererDiagnostics = { ...diag, fallbackReason: diag.fallbackReason || decision.fallbackReason };
   resizeCanvas();
   applyIntent("");
+  logSystem(`[BOOT] Manifest surface initialized (${diag.backend})`);
   requestAnimationFrame(frame);
 }
 
 window.addEventListener("resize", resizeCanvas, { passive: true });
+
+setupWebSpeech();
+setupDiagnosticsDrawer();
+
 initializeRenderer().catch((error) => {
   console.error("Renderer initialization failed; falling back to Canvas2D.", error);
   renderer = createCanvasRenderer({ canvas, rendererSeed, reducedMotion });
-  renderer.initialize().then(() => { resizeCanvas(); applyIntent(""); requestAnimationFrame(frame); });
+  renderer.initialize().then(() => {
+    resizeCanvas();
+    applyIntent("");
+    logSystem("[BOOT] Fallback Canvas2D initialized");
+    requestAnimationFrame(frame);
+  });
 });
