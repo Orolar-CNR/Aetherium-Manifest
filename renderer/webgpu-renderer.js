@@ -120,6 +120,10 @@ export function createWebGPURenderer({ canvas, rendererSeed } = {}) {
 
     resize(size) { width = size.width; height = size.height; },
 
+    triggerEarlyManifestation(signal) {
+      // Graceful Early Manifestation stub for WebGPU backend
+    },
+
     setManifestationState(state, timing = {}) {
       params = visualStateToGpuManifestParameters(state, { particleCount, time: timing.time || 0, deltaTime: timing.deltaTime || 0.016, simulationScale: 1 });
       if (device && uniformBuffer) device.queue.writeBuffer(uniformBuffer, 0, packGpuManifestUniforms(params, { width, height }));
