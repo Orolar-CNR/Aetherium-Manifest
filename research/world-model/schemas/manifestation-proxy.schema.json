@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aetherium.dev/schemas/research/manifestation-proxy.schema.json",
+  "title": "Aetherium ManifestationProxy Research Schema",
+  "description": "Schema for compiled intermediate spatial-temporal manifestation bounds (Research Only).",
+  "type": "object",
+  "required": [
+    "version",
+    "timestamp",
+    "region",
+    "density",
+    "flow",
+    "coherence",
+    "morphology",
+    "persistence",
+    "visual_hints"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "timestamp": { "type": "number", "minimum": 0 },
+    "region": {
+      "type": "object",
+      "required": ["center", "extent"],
+      "properties": {
+        "center": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "extent": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "additionalProperties": false
+    },
+    "density": { "type": "number", "minimum": 0, "maximum": 1 },
+    "flow": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "coherence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "morphology": { "type": "string" },
+    "persistence": { "type": "number", "minimum": 0 },
+    "visual_hints": {
+      "type": "object",
+      "required": ["primary_hue_shift", "turbulence", "particle_count_scale"],
+      "properties": {
+        "primary_hue_shift": { "type": "number" },
+        "turbulence": { "type": "number", "minimum": 0 },
+        "particle_count_scale": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

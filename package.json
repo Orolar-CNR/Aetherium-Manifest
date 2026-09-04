@@ -3,9 +3,11 @@
   "version": "0.2.0",
   "type": "module",
   "scripts": {
-    "test": "node tests/visual-state.test.js && node tests/webgpu/adapter.test.js && node tests/webgpu/shader-invariants.test.js && node tests/baseline-snapshot.test.js && node tests/perceptual-harness.test.js && node tests/temporal-signal-fusion.test.js",
+    "test": "node tests/visual-state.test.js && node tests/webgpu/adapter.test.js && node tests/webgpu/shader-invariants.test.js && node tests/baseline-snapshot.test.js && node tests/perceptual-harness.test.js && node tests/temporal-signal-fusion.test.js && node tests/world-model/world-model.test.js",
     "serve": "python3 -m http.server 8080",
     "benchmark:sdf": "node research/field-dynamics/benchmarks/sdf-benchmark.js",
+    "benchmark:world-model": "node research/world-model/benchmarks/world-model-benchmark.js",
+    "test:world-model": "node tests/world-model/world-model.test.js",
     "test:webgpu": "node tests/webgpu/adapter.test.js && node tests/webgpu/shader-invariants.test.js",
     "test:perceptual": "node tests/perceptual-harness.test.js",
     "test:baseline": "node tests/baseline-snapshot.test.js"

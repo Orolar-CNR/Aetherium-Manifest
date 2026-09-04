@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aetherium.dev/schemas/research/environmental-event.schema.json",
+  "title": "Aetherium EnvironmentalEvent Research Schema",
+  "description": "Schema for input signals impacting environmental state (Research Only).",
+  "type": "object",
+  "required": [
+    "id",
+    "type",
+    "timestamp",
+    "position",
+    "intensity",
+    "parameters"
+  ],
+  "properties": {
+    "id": { "type": "string" },
+    "type": {
+      "type": "string",
+      "enum": ["touch_impulse", "continuous_drag", "message_event", "field_reset"]
+    },
+    "timestamp": { "type": "number", "minimum": 0 },
+    "position": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "intensity": { "type": "number", "minimum": 0, "maximum": 1 },
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "radius": { "type": "number" },
+        "force": { "type": "number" },
+        "vector": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "text": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

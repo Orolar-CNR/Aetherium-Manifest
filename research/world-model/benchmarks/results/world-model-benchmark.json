@@ -1,0 +1,490 @@
+{
+  "metadata": {
+    "title": "Aetherium Environmental Dynamics Runtime Benchmark",
+    "status": "RESEARCH | NON-CANONICAL | EXPERIMENTAL",
+    "timestamp": "2026-09-04T11:05:10.085Z",
+    "execution_time_ms": 17,
+    "node_version": "v22.22.1",
+    "platform": "linux",
+    "total_scenarios": 4,
+    "all_deterministic_passed": true
+  },
+  "scenarios": [
+    {
+      "scenario_id": "scenario-a-single-touch",
+      "name": "Scenario A: Touch Impulse -> Local Field Disturbance -> Propagation",
+      "steps_executed": 5,
+      "execution_time_ms": 1.973,
+      "determinism": {
+        "pass": true,
+        "run1_canonical_json": "{\"version\":\"0.1.0\",\"timestamp\":0.5,\"step\":5,\"global_energy\":0.37,\"coherence\":0.805,\"entropy\":0.19,\"fields\":[{\"center\":[0.5,0.5],\"frequency\":1.5,\"id\":\"field-touch-01\",\"intensity\":0.72387,\"radius\":0.125,\"type\":\"radial_expansion\"}],\"disturbances\":[{\"age\":0.5,\"amplitude\":0.742196,\"decay_rate\":0.15,\"id\":\"dist-touch-01\",\"position\":[0.5,0.5]}]}",
+        "run2_canonical_json": "{\"version\":\"0.1.0\",\"timestamp\":0.5,\"step\":5,\"global_energy\":0.37,\"coherence\":0.805,\"entropy\":0.19,\"fields\":[{\"center\":[0.5,0.5],\"frequency\":1.5,\"id\":\"field-touch-01\",\"intensity\":0.72387,\"radius\":0.125,\"type\":\"radial_expansion\"}],\"disturbances\":[{\"age\":0.5,\"amplitude\":0.742196,\"decay_rate\":0.15,\"id\":\"dist-touch-01\",\"position\":[0.5,0.5]}]}"
+      },
+      "final_state": {
+        "version": "0.1.0",
+        "timestamp": 0.5,
+        "step": 5,
+        "global_energy": 0.37,
+        "coherence": 0.805,
+        "entropy": 0.19,
+        "fields": [
+          {
+            "id": "field-touch-01",
+            "type": "radial_expansion",
+            "center": [
+              0.5,
+              0.5
+            ],
+            "radius": 0.125,
+            "intensity": 0.72387,
+            "frequency": 1.5
+          }
+        ],
+        "disturbances": [
+          {
+            "id": "dist-touch-01",
+            "position": [
+              0.5,
+              0.5
+            ],
+            "amplitude": 0.742196,
+            "decay_rate": 0.15,
+            "age": 0.5
+          }
+        ]
+      },
+      "manifestation_proxy": {
+        "version": "0.1.0",
+        "timestamp": 0.5,
+        "region": {
+          "center": [
+            0.5,
+            0.5
+          ],
+          "extent": [
+            0.1,
+            0.1
+          ]
+        },
+        "density": 0.496,
+        "flow": [
+          0,
+          0
+        ],
+        "coherence": 0.805,
+        "morphology": "radial_expansion",
+        "persistence": 3.415,
+        "visual_hints": {
+          "primary_hue_shift": 66.6,
+          "turbulence": 0.191,
+          "particle_count_scale": 1.055
+        }
+      },
+      "step_trace": [
+        {
+          "step": 1,
+          "timestamp": 0.1,
+          "energy": 0.41,
+          "coherence": 0.785,
+          "field_count": 1,
+          "disturbance_count": 1,
+          "canonical_hash": "{\"version\":\"0.1.0\",\"timestamp\":0.1,\"step\":1,\"global_energy\":0.41,\"coherence\":0.785,\"entropy\":0.182,\"fields\":[{\"center\":[0.5,0.5],\"frequency\":1.5,\"id\":\"field-touch-01\",\"intensity\":0.784159,\"radius\":0.065,\"type\":\"radial_expansion\"}],\"disturbances\":[{\"age\":0.1,\"amplitude\":0.78809,\"decay_rate\":0.15,\"id\":\"dist-touch-01\",\"position\":[0.5,0.5]}]}"
+        },
+        {
+          "step": 2,
+          "timestamp": 0.2,
+          "energy": 0.4,
+          "coherence": 0.79,
+          "field_count": 1,
+          "disturbance_count": 1,
+          "canonical_hash": "{\"version\":\"0.1.0\",\"timestamp\":0.2,\"step\":2,\"global_energy\":0.4,\"coherence\":0.79,\"entropy\":0.184,\"fields\":[{\"center\":[0.5,0.5],\"frequency\":1.5,\"id\":\"field-touch-01\",\"intensity\":0.768632,\"radius\":0.08,\"type\":\"radial_expansion\"}],\"disturbances\":[{\"age\":0.2,\"amplitude\":0.776357,\"decay_rate\":0.15,\"id\":\"dist-touch-01\",\"position\":[0.5,0.5]}]}"
+        },
+        {
+          "step": 3,
+          "timestamp": 0.3,
+          "energy": 0.39,
+          "coherence": 0.795,
+          "field_count": 1,
+          "disturbance_count": 1,
+          "canonical_hash": "{\"version\":\"0.1.0\",\"timestamp\":0.3,\"step\":3,\"global_energy\":0.39,\"coherence\":0.795,\"entropy\":0.186,\"fields\":[{\"center\":[0.5,0.5],\"frequency\":1.5,\"id\":\"field-touch-01\",\"intensity\":0.753412,\"radius\":0.095,\"type\":\"radial_expansion\"}],\"disturbances\":[{\"age\":0.3,\"amplitude\":0.764799,\"decay_rate\":0.15,\"id\":\"dist-touch-01\",\"position\":[0.5,0.5]}]}"
+        },
+        {
+          "step": 4,
+          "timestamp": 0.4,
+          "energy": 0.38,
+          "coherence": 0.8,
+          "field_count": 1,
+          "disturbance_count": 1,
+          "canonical_hash": "{\"version\":\"0.1.0\",\"timestamp\":0.4,\"step\":4,\"global_energy\":0.38,\"coherence\":0.8,\"entropy\":0.188,\"fields\":[{\"center\":[0.5,0.5],\"frequency\":1.5,\"id\":\"field-touch-01\",\"intensity\":0.738493,\"radius\":0.11,\"type\":\"radial_expansion\"}],\"disturbances\":[{\"age\":0.4,\"amplitude\":0.753413,\"decay_rate\":0.15,\"id\":\"dist-touch-01\",\"position\":[0.5,0.5]}]}"
+        },
+        {
+          "step": 5,
+          "timestamp": 0.5,
+          "energy": 0.37,
+          "coherence": 0.805,
+          "field_count": 1,
+          "disturbance_count": 1,
+          "canonical_hash": "{\"version\":\"0.1.0\",\"timestamp\":0.5,\"step\":5,\"global_energy\":0.37,\"coherence\":0.805,\"entropy\":0.19,\"fields\":[{\"center\":[0.5,0.5],\"frequency\":1.5,\"id\":\"field-touch-01\",\"intensity\":0.72387,\"radius\":0.125,\"type\":\"radial_expansion\"}],\"disturbances\":[{\"age\":0.5,\"amplitude\":0.742196,\"decay_rate\":0.15,\"id\":\"dist-touch-01\",\"position\":[0.5,0.5]}]}"
+        }
+      ]
+    },
+    {
+      "scenario_id": "scenario-b-multi-touch",
+      "name": "Scenario B: Multi-touch Persistent Interference",
+      "steps_executed": 5,
+      "execution_time_ms": 13.589,
+      "determinism": {
+        "pass": true,
+        "run1_canonical_json": "{\"version\":\"0.1.0\",\"timestamp\":0.5,\"step\":5,\"global_energy\":0.61,\"coherence\":0.615,\"entropy\":0.25,\"fields\":[{\"center\":[0.3,0.5],\"frequency\":1.5,\"id\":\"field-touch-101\",\"intensity\":0.633387,\"radius\":0.125,\"type\":\"radial_expansion\"},{\"center\":[0.4,0.5],\"frequency\":1.5,\"id\":\"field-touch-102\",\"intensity\":0.659236,\"radius\":0.095,\"type\":\"radial_expansion\"}],\"disturbances\":[{\"age\":0.5,\"amplitude\":0.751785,\"decay_rate\":0.15,\"id\":\"dist-touch-101\",\"position\":[0.3,0.5]},{\"age\":0.3,\"amplitude\":0.774681,\"decay_rate\":0.15,\"id\":\"dist-touch-102\",\"position\":[0.4,0.5]}]}",
+        "run2_canonical_json": "{\"version\":\"0.1.0\",\"timestamp\":0.5,\"step\":5,\"global_energy\":0.61,\"coherence\":0.615,\"entropy\":0.25,\"fields\":[{\"center\":[0.3,0.5],\"frequency\":1.5,\"id\":\"field-touch-101\",\"intensity\":0.633387,\"radius\":0.125,\"type\":\"radial_expansion\"},{\"center\":[0.4,0.5],\"frequency\":1.5,\"id\":\"field-touch-102\",\"intensity\":0.659236,\"radius\":0.095,\"type\":\"radial_expansion\"}],\"disturbances\":[{\"age\":0.5,\"amplitude\":0.751785,\"decay_rate\":0.15,\"id\":\"dist-touch-101\",\"position\":[0.3,0.5]},{\"age\":0.3,\"amplitude\":0.774681,\"decay_rate\":0.15,\"id\":\"dist-touch-102\",\"position\":[0.4,0.5]}]}"
+      },
+      "final_state": {
+        "version": "0.1.0",
+        "timestamp": 0.5,
+        "step": 5,
+        "global_energy": 0.61,
+        "coherence": 0.615,
+        "entropy": 0.25,
+        "fields": [
+          {
+            "id": "field-touch-101",
+            "type": "radial_expansion",
+            "center": [
+              0.3,
+              0.5
+            ],
+            "radius": 0.125,
+            "intensity": 0.633387,
+            "frequency": 1.5
+          },
+          {
+            "id": "field-touch-102",
+            "type": "radial_expansion",
+            "center": [
+              0.4,
+              0.5
+            ],
+            "radius": 0.095,
+            "intensity": 0.659236,
+            "frequency": 1.5
+          }
+        ],
+        "disturbances": [
+          {
+            "id": "dist-touch-101",
+            "position": [
+              0.3,
+              0.5
+            ],
+            "amplitude": 0.751785,
+            "decay_rate": 0.15,
+            "age": 0.5
+          },
+          {
+            "id": "dist-touch-102",
+            "position": [
+              0.4,
+              0.5
+            ],
+            "amplitude": 0.774681,
+            "decay_rate": 0.15,
+            "age": 0.3
+          }
+        ]
+      },
+      "manifestation_proxy": {
+        "version": "0.1.0",
+        "timestamp": 0.5,
+        "region": {
+          "center": [
+            0.35075,
+            0.5
+          ],
+          "extent": [
+            0.15,
+            0.1
+          ]
+        },
+        "density": 0.688,
+        "flow": [
+          0,
+          0
+        ],
+        "coherence": 0.615,
+        "morphology": "interference_pattern",
+        "persistence": 2.845,
+        "visual_hints": {
+          "primary_hue_shift": 109.8,
+          "turbulence": 0.277,
+          "particle_count_scale": 1.415
+        }
+      },
+      "step_trace": [
+        {
+          "step": 1,
+          "timestamp": 0.1,
+          "energy": 0.37,
+          "coherence": 0.7,
+          "field_count": 1,
+          "disturbance_count": 1,
+          "canonical_hash": "{\"version\":\"0.1.0\",\"timestamp\":0.1,\"step\":1,\"global_energy\":0.37,\"coherence\":0.7,\"entropy\":0.172,\"fields\":[{\"center\":[0.3,0.5],\"frequency\":1.5,\"id\":\"field-touch-101\",\"intensity\":0.686139,\"radius\":0.065,\"type\":\"radial_expansion\"}],\"disturbances\":[{\"age\":0.1,\"amplitude\":0.689578,\"decay_rate\":0.15,\"id\":\"dist-touch-101\",\"position\":[0.3,0.5]}]}"
+        },
+        {
+          "step": 2,
+          "timestamp": 0.2,
+          "energy": 0.36,
+          "coherence": 0.705,
+          "field_count": 1,
+          "disturbance_count": 1,
+          "canonical_hash": "{\"version\":\"0.1.0\",\"timestamp\":0.2,\"step\":2,\"global_energy\":0.36,\"coherence\":0.705,\"entropy\":0.174,\"fields\":[{\"center\":[0.3,0.5],\"frequency\":1.5,\"id\":\"field-touch-101\",\"intensity\":0.672553,\"radius\":0.08,\"type\":\"radial_expansion\"}],\"disturbances\":[{\"age\":0.2,\"amplitude\":0.679312,\"decay_rate\":0.15,\"id\":\"dist-touch-101\",\"position\":[0.3,0.5]}]}"
+        },
+        {
+          "step": 3,
+          "timestamp": 0.3,
+          "energy": 0.63,
+          "coherence": 0.605,
+          "field_count": 2,
+          "disturbance_count": 2,
+          "canonical_hash": "{\"version\":\"0.1.0\",\"timestamp\":0.3,\"step\":3,\"global_energy\":0.63,\"coherence\":0.605,\"entropy\":0.246,\"fields\":[{\"center\":[0.3,0.5],\"frequency\":1.5,\"id\":\"field-touch-101\",\"intensity\":0.659236,\"radius\":0.095,\"type\":\"radial_expansion\"},{\"center\":[0.4,0.5],\"frequency\":1.5,\"id\":\"field-touch-102\",\"intensity\":0.686139,\"radius\":0.065,\"type\":\"radial_expansion\"}],\"disturbances\":[{\"age\":0.3,\"amplitude\":0.702658,\"decay_rate\":0.15,\"id\":\"dist-touch-101\",\"position\":[0.3,0.5]},{\"age\":0.1,\"amplitude\":0.724057,\"decay_rate\":0.15,\"id\":\"dist-touch-102\",\"position\":[0.4,0.5]}]}"
+        },
+        {
+          "step": 4,
+          "timestamp": 0.4,
+          "energy": 0.62,
+          "coherence": 0.61,
+          "field_count": 2,
+          "disturbance_count": 2,
+          "canonical_hash": "{\"version\":\"0.1.0\",\"timestamp\":0.4,\"step\":4,\"global_energy\":0.62,\"coherence\":0.61,\"entropy\":0.248,\"fields\":[{\"center\":[0.3,0.5],\"frequency\":1.5,\"id\":\"field-touch-101\",\"intensity\":0.646182,\"radius\":0.11,\"type\":\"radial_expansion\"},{\"center\":[0.4,0.5],\"frequency\":1.5,\"id\":\"field-touch-102\",\"intensity\":0.672553,\"radius\":0.08,\"type\":\"radial_expansion\"}],\"disturbances\":[{\"age\":0.4,\"amplitude\":0.726807,\"decay_rate\":0.15,\"id\":\"dist-touch-101\",\"position\":[0.3,0.5]},{\"age\":0.2,\"amplitude\":0.748941,\"decay_rate\":0.15,\"id\":\"dist-touch-102\",\"position\":[0.4,0.5]}]}"
+        },
+        {
+          "step": 5,
+          "timestamp": 0.5,
+          "energy": 0.61,
+          "coherence": 0.615,
+          "field_count": 2,
+          "disturbance_count": 2,
+          "canonical_hash": "{\"version\":\"0.1.0\",\"timestamp\":0.5,\"step\":5,\"global_energy\":0.61,\"coherence\":0.615,\"entropy\":0.25,\"fields\":[{\"center\":[0.3,0.5],\"frequency\":1.5,\"id\":\"field-touch-101\",\"intensity\":0.633387,\"radius\":0.125,\"type\":\"radial_expansion\"},{\"center\":[0.4,0.5],\"frequency\":1.5,\"id\":\"field-touch-102\",\"intensity\":0.659236,\"radius\":0.095,\"type\":\"radial_expansion\"}],\"disturbances\":[{\"age\":0.5,\"amplitude\":0.751785,\"decay_rate\":0.15,\"id\":\"dist-touch-101\",\"position\":[0.3,0.5]},{\"age\":0.3,\"amplitude\":0.774681,\"decay_rate\":0.15,\"id\":\"dist-touch-102\",\"position\":[0.4,0.5]}]}"
+        }
+      ]
+    },
+    {
+      "scenario_id": "scenario-c-drag",
+      "name": "Scenario C: Continuous Drag -> Directional Field Deformation",
+      "steps_executed": 4,
+      "execution_time_ms": 0.364,
+      "determinism": {
+        "pass": true,
+        "run1_canonical_json": "{\"version\":\"0.1.0\",\"timestamp\":0.4,\"step\":4,\"global_energy\":0.51,\"coherence\":0.72,\"entropy\":0.108,\"fields\":[{\"center\":[0.2,0.5],\"frequency\":0.912311,\"id\":\"field-drag-drag-201\",\"intensity\":0.553869,\"radius\":0.16,\"type\":\"directional_flow\"},{\"center\":[0.4,0.45],\"frequency\":1.009902,\"id\":\"field-drag-drag-202\",\"intensity\":0.753412,\"radius\":0.145,\"type\":\"directional_flow\"}],\"disturbances\":[{\"age\":0.4,\"amplitude\":0.512938,\"decay_rate\":0.2,\"id\":\"dist-drag-drag-201\",\"position\":[0.2,0.5]},{\"age\":0.3,\"amplitude\":0.697733,\"decay_rate\":0.2,\"id\":\"dist-drag-drag-202\",\"position\":[0.4,0.45]}]}",
+        "run2_canonical_json": "{\"version\":\"0.1.0\",\"timestamp\":0.4,\"step\":4,\"global_energy\":0.51,\"coherence\":0.72,\"entropy\":0.108,\"fields\":[{\"center\":[0.2,0.5],\"frequency\":0.912311,\"id\":\"field-drag-drag-201\",\"intensity\":0.553869,\"radius\":0.16,\"type\":\"directional_flow\"},{\"center\":[0.4,0.45],\"frequency\":1.009902,\"id\":\"field-drag-drag-202\",\"intensity\":0.753412,\"radius\":0.145,\"type\":\"directional_flow\"}],\"disturbances\":[{\"age\":0.4,\"amplitude\":0.512938,\"decay_rate\":0.2,\"id\":\"dist-drag-drag-201\",\"position\":[0.2,0.5]},{\"age\":0.3,\"amplitude\":0.697733,\"decay_rate\":0.2,\"id\":\"dist-drag-drag-202\",\"position\":[0.4,0.45]}]}"
+      },
+      "final_state": {
+        "version": "0.1.0",
+        "timestamp": 0.4,
+        "step": 4,
+        "global_energy": 0.51,
+        "coherence": 0.72,
+        "entropy": 0.108,
+        "fields": [
+          {
+            "id": "field-drag-drag-201",
+            "type": "directional_flow",
+            "center": [
+              0.2,
+              0.5
+            ],
+            "radius": 0.16,
+            "intensity": 0.553869,
+            "frequency": 0.912311
+          },
+          {
+            "id": "field-drag-drag-202",
+            "type": "directional_flow",
+            "center": [
+              0.4,
+              0.45
+            ],
+            "radius": 0.145,
+            "intensity": 0.753412,
+            "frequency": 1.009902
+          }
+        ],
+        "disturbances": [
+          {
+            "id": "dist-drag-drag-201",
+            "position": [
+              0.2,
+              0.5
+            ],
+            "amplitude": 0.512938,
+            "decay_rate": 0.2,
+            "age": 0.4
+          },
+          {
+            "id": "dist-drag-drag-202",
+            "position": [
+              0.4,
+              0.45
+            ],
+            "amplitude": 0.697733,
+            "decay_rate": 0.2,
+            "age": 0.3
+          }
+        ]
+      },
+      "manifestation_proxy": {
+        "version": "0.1.0",
+        "timestamp": 0.4,
+        "region": {
+          "center": [
+            0.315264,
+            0.471184
+          ],
+          "extent": [
+            0.2,
+            0.125
+          ]
+        },
+        "density": 0.608,
+        "flow": [
+          0.261456,
+          -0.130728
+        ],
+        "coherence": 0.72,
+        "morphology": "directional_flow",
+        "persistence": 3.16,
+        "visual_hints": {
+          "primary_hue_shift": 91.8,
+          "turbulence": 0.1424,
+          "particle_count_scale": 1.265
+        }
+      },
+      "step_trace": [
+        {
+          "step": 1,
+          "timestamp": 0.1,
+          "energy": 0.34,
+          "coherence": 0.705,
+          "field_count": 1,
+          "disturbance_count": 1,
+          "canonical_hash": "{\"version\":\"0.1.0\",\"timestamp\":0.1,\"step\":1,\"global_energy\":0.34,\"coherence\":0.705,\"entropy\":0.102,\"fields\":[{\"center\":[0.2,0.5],\"frequency\":0.912311,\"id\":\"field-drag-drag-201\",\"intensity\":0.588119,\"radius\":0.115,\"type\":\"directional_flow\"}],\"disturbances\":[{\"age\":0.1,\"amplitude\":0.470495,\"decay_rate\":0.2,\"id\":\"dist-drag-drag-201\",\"position\":[0.2,0.5]}]}"
+        },
+        {
+          "step": 2,
+          "timestamp": 0.2,
+          "energy": 0.53,
+          "coherence": 0.71,
+          "field_count": 2,
+          "disturbance_count": 2,
+          "canonical_hash": "{\"version\":\"0.1.0\",\"timestamp\":0.2,\"step\":2,\"global_energy\":0.53,\"coherence\":0.71,\"entropy\":0.104,\"fields\":[{\"center\":[0.2,0.5],\"frequency\":0.912311,\"id\":\"field-drag-drag-201\",\"intensity\":0.576473,\"radius\":0.13,\"type\":\"directional_flow\"},{\"center\":[0.4,0.45],\"frequency\":1.009902,\"id\":\"field-drag-drag-202\",\"intensity\":0.784159,\"radius\":0.115,\"type\":\"directional_flow\"}],\"disturbances\":[{\"age\":0.2,\"amplitude\":0.484238,\"decay_rate\":0.2,\"id\":\"dist-drag-drag-201\",\"position\":[0.2,0.5]},{\"age\":0.1,\"amplitude\":0.658693,\"decay_rate\":0.2,\"id\":\"dist-drag-drag-202\",\"position\":[0.4,0.45]}]}"
+        },
+        {
+          "step": 3,
+          "timestamp": 0.3,
+          "energy": 0.52,
+          "coherence": 0.715,
+          "field_count": 2,
+          "disturbance_count": 2,
+          "canonical_hash": "{\"version\":\"0.1.0\",\"timestamp\":0.3,\"step\":3,\"global_energy\":0.52,\"coherence\":0.715,\"entropy\":0.106,\"fields\":[{\"center\":[0.2,0.5],\"frequency\":0.912311,\"id\":\"field-drag-drag-201\",\"intensity\":0.565058,\"radius\":0.145,\"type\":\"directional_flow\"},{\"center\":[0.4,0.45],\"frequency\":1.009902,\"id\":\"field-drag-drag-202\",\"intensity\":0.768632,\"radius\":0.13,\"type\":\"directional_flow\"}],\"disturbances\":[{\"age\":0.3,\"amplitude\":0.498381,\"decay_rate\":0.2,\"id\":\"dist-drag-drag-201\",\"position\":[0.2,0.5]},{\"age\":0.2,\"amplitude\":0.677932,\"decay_rate\":0.2,\"id\":\"dist-drag-drag-202\",\"position\":[0.4,0.45]}]}"
+        },
+        {
+          "step": 4,
+          "timestamp": 0.4,
+          "energy": 0.51,
+          "coherence": 0.72,
+          "field_count": 2,
+          "disturbance_count": 2,
+          "canonical_hash": "{\"version\":\"0.1.0\",\"timestamp\":0.4,\"step\":4,\"global_energy\":0.51,\"coherence\":0.72,\"entropy\":0.108,\"fields\":[{\"center\":[0.2,0.5],\"frequency\":0.912311,\"id\":\"field-drag-drag-201\",\"intensity\":0.553869,\"radius\":0.16,\"type\":\"directional_flow\"},{\"center\":[0.4,0.45],\"frequency\":1.009902,\"id\":\"field-drag-drag-202\",\"intensity\":0.753412,\"radius\":0.145,\"type\":\"directional_flow\"}],\"disturbances\":[{\"age\":0.4,\"amplitude\":0.512938,\"decay_rate\":0.2,\"id\":\"dist-drag-drag-201\",\"position\":[0.2,0.5]},{\"age\":0.3,\"amplitude\":0.697733,\"decay_rate\":0.2,\"id\":\"dist-drag-drag-202\",\"position\":[0.4,0.45]}]}"
+        }
+      ]
+    },
+    {
+      "scenario_id": "scenario-d-message",
+      "name": "Scenario D: Signal Event -> Environmental State Transition",
+      "steps_executed": 3,
+      "execution_time_ms": 0.152,
+      "determinism": {
+        "pass": true,
+        "run1_canonical_json": "{\"version\":\"0.1.0\",\"timestamp\":0.3,\"step\":3,\"global_energy\":0.52,\"coherence\":0.715,\"entropy\":0.006,\"fields\":[{\"center\":[0.5,0.5],\"frequency\":2,\"id\":\"field-msg-msg-301\",\"intensity\":0.847589,\"radius\":0.445,\"type\":\"harmonic_standing_wave\"}],\"disturbances\":[]}",
+        "run2_canonical_json": "{\"version\":\"0.1.0\",\"timestamp\":0.3,\"step\":3,\"global_energy\":0.52,\"coherence\":0.715,\"entropy\":0.006,\"fields\":[{\"center\":[0.5,0.5],\"frequency\":2,\"id\":\"field-msg-msg-301\",\"intensity\":0.847589,\"radius\":0.445,\"type\":\"harmonic_standing_wave\"}],\"disturbances\":[]}"
+      },
+      "final_state": {
+        "version": "0.1.0",
+        "timestamp": 0.3,
+        "step": 3,
+        "global_energy": 0.52,
+        "coherence": 0.715,
+        "entropy": 0.006,
+        "fields": [
+          {
+            "id": "field-msg-msg-301",
+            "type": "harmonic_standing_wave",
+            "center": [
+              0.5,
+              0.5
+            ],
+            "radius": 0.445,
+            "intensity": 0.847589,
+            "frequency": 2
+          }
+        ],
+        "disturbances": []
+      },
+      "manifestation_proxy": {
+        "version": "0.1.0",
+        "timestamp": 0.3,
+        "region": {
+          "center": [
+            0.5,
+            0.5
+          ],
+          "extent": [
+            0.445,
+            0.445
+          ]
+        },
+        "density": 0.616,
+        "flow": [
+          0,
+          0
+        ],
+        "coherence": 0.715,
+        "morphology": "vortex_ring",
+        "persistence": 3.145,
+        "visual_hints": {
+          "primary_hue_shift": 93.6,
+          "turbulence": 0.0618,
+          "particle_count_scale": 1.28
+        }
+      },
+      "step_trace": [
+        {
+          "step": 1,
+          "timestamp": 0.1,
+          "energy": 0.54,
+          "coherence": 0.705,
+          "field_count": 1,
+          "disturbance_count": 0,
+          "canonical_hash": "{\"version\":\"0.1.0\",\"timestamp\":0.1,\"step\":1,\"global_energy\":0.54,\"coherence\":0.705,\"entropy\":0.002,\"fields\":[{\"center\":[0.5,0.5],\"frequency\":2,\"id\":\"field-msg-msg-301\",\"intensity\":0.882179,\"radius\":0.415,\"type\":\"harmonic_standing_wave\"}],\"disturbances\":[]}"
+        },
+        {
+          "step": 2,
+          "timestamp": 0.2,
+          "energy": 0.53,
+          "coherence": 0.71,
+          "field_count": 1,
+          "disturbance_count": 0,
+          "canonical_hash": "{\"version\":\"0.1.0\",\"timestamp\":0.2,\"step\":2,\"global_energy\":0.53,\"coherence\":0.71,\"entropy\":0.004,\"fields\":[{\"center\":[0.5,0.5],\"frequency\":2,\"id\":\"field-msg-msg-301\",\"intensity\":0.864711,\"radius\":0.43,\"type\":\"harmonic_standing_wave\"}],\"disturbances\":[]}"
+        },
+        {
+          "step": 3,
+          "timestamp": 0.3,
+          "energy": 0.52,
+          "coherence": 0.715,
+          "field_count": 1,
+          "disturbance_count": 0,
+          "canonical_hash": "{\"version\":\"0.1.0\",\"timestamp\":0.3,\"step\":3,\"global_energy\":0.52,\"coherence\":0.715,\"entropy\":0.006,\"fields\":[{\"center\":[0.5,0.5],\"frequency\":2,\"id\":\"field-msg-msg-301\",\"intensity\":0.847589,\"radius\":0.445,\"type\":\"harmonic_standing_wave\"}],\"disturbances\":[]}"
+        }
+      ]
+    }
+  ]
+}

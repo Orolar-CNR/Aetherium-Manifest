@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aetherium.dev/schemas/research/transition-rule.schema.json",
+  "title": "Aetherium TransitionRule Research Schema",
+  "description": "Schema for transition parameters governing deterministic environmental state evolution (Research Only).",
+  "type": "object",
+  "required": [
+    "rule_id",
+    "energy_decay_rate",
+    "propagation_speed",
+    "superposition_threshold",
+    "coherence_recovery_rate",
+    "entropy_growth_rate"
+  ],
+  "properties": {
+    "rule_id": { "type": "string" },
+    "energy_decay_rate": { "type": "number", "minimum": 0 },
+    "propagation_speed": { "type": "number", "minimum": 0 },
+    "superposition_threshold": { "type": "number", "minimum": 0 },
+    "coherence_recovery_rate": { "type": "number", "minimum": 0 },
+    "entropy_growth_rate": { "type": "number", "minimum": 0 }
+  },
+  "additionalProperties": false
+}
