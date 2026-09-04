@@ -1,0 +1,79 @@
+{
+  "timestamp": "2026-09-04T08:07:11.974Z",
+  "document_id": "AETHERIUM-SDF-BENCHMARK-RUN-v0.1",
+  "status": "RESEARCH_NON_CANONICAL",
+  "scaling_experiments": [
+    {
+      "profile": "LOW",
+      "particle_count": 20000,
+      "avg_frame_time_ms": 85.342,
+      "p50_frame_time_ms": 85.635,
+      "p95_frame_time_ms": 95.539,
+      "morphology_error": 0.6358,
+      "heap_used_mb": 5.46
+    },
+    {
+      "profile": "MID",
+      "particle_count": 100000,
+      "avg_frame_time_ms": 407.731,
+      "p50_frame_time_ms": 406.458,
+      "p95_frame_time_ms": 427.585,
+      "morphology_error": 0.6353,
+      "heap_used_mb": 7.26
+    },
+    {
+      "profile": "HIGH",
+      "particle_count": 250000,
+      "avg_frame_time_ms": 1028.32,
+      "p50_frame_time_ms": 1026.725,
+      "p95_frame_time_ms": 1075.085,
+      "morphology_error": 0.635,
+      "heap_used_mb": 8.29
+    }
+  ],
+  "degradation_experiments": [
+    {
+      "degradation_level": "FULL",
+      "particle_count": 100000,
+      "avg_frame_time_ms": 407.469,
+      "p95_frame_time_ms": 451.584,
+      "morphology_error": 0.6832
+    },
+    {
+      "degradation_level": "REDUCED_DETAIL",
+      "particle_count": 100000,
+      "avg_frame_time_ms": 171.788,
+      "p95_frame_time_ms": 174.833,
+      "morphology_error": 1.1307
+    },
+    {
+      "degradation_level": "SIMPLIFIED",
+      "particle_count": 100000,
+      "avg_frame_time_ms": 126.655,
+      "p95_frame_time_ms": 144.272,
+      "morphology_error": 1.237
+    },
+    {
+      "degradation_level": "SYMBOLIC",
+      "particle_count": 100000,
+      "avg_frame_time_ms": 77.34,
+      "p95_frame_time_ms": 92.931,
+      "morphology_error": 1.237
+    },
+    {
+      "degradation_level": "MINIMAL_SAFE_FIELD",
+      "particle_count": 100000,
+      "avg_frame_time_ms": 78.162,
+      "p95_frame_time_ms": 93.5,
+      "morphology_error": 1.6546
+    }
+  ],
+  "determinism_check": {
+    "seed": 999,
+    "particle_count": 10000,
+    "is_deterministic": true,
+    "hash_match": true,
+    "sampleSum_A": 18417656,
+    "sampleSum_B": 18417656
+  }
+}

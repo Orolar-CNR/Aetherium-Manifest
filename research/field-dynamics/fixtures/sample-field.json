@@ -1,0 +1,22 @@
+{
+  "field_id": "EXPERIMENTAL_FIGURE_01",
+  "status": "RESEARCH_NON_CANONICAL",
+  "layers": {
+    "foreground": {
+      "type": "torus",
+      "torusRadii": [1.2, 0.4],
+      "translation": [0, 0, 0],
+      "oscillate": [1.5, 0.2]
+    },
+    "background": {
+      "type": "sphere",
+      "radius": 2.5,
+      "translation": [0, -0.5, -1.0]
+    },
+    "accent": {
+      "type": "box",
+      "halfExtents": [0.3, 0.3, 0.3],
+      "translation": [0, 1.0, 0]
+    }
+  }
+}
