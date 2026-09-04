@@ -1,0 +1,143 @@
+{
+  "research_metadata": {
+    "document_id": "AETHERIUM-SDF-RESEARCH-v0.1",
+    "status": "RESEARCH_NON_CANONICAL",
+    "execution_type": "feasibility_study",
+    "implementation_status": "NOT_IMPLEMENTED_AS_DESCRIBED"
+  },
+  "research_question": {
+    "primary": "Can dynamic SDF-based morphology provide controllable real-time figurative manifestations under device resource constraints?"
+  },
+  "proposed_model": {
+    "morphology_engine": "dynamic_sdf",
+    "composition_strategy": "multi_layer_experimental",
+    "gradient_based_particle_control": true,
+    "boundary_target": 0.0
+  },
+  "candidate_layers": {
+    "background": {
+      "semantic_priority": "lower",
+      "resource_priority": "lower",
+      "status": "HYPOTHESIS"
+    },
+    "foreground": {
+      "semantic_priority": "higher",
+      "resource_priority": "higher",
+      "status": "HYPOTHESIS"
+    },
+    "accent": {
+      "semantic_priority": "selective",
+      "resource_priority": "selective",
+      "status": "HYPOTHESIS"
+    }
+  },
+  "resource_profiles_reference": {
+    "LOW": {
+      "max_particles": 20000,
+      "classification": "SHOULD_REFERENCE"
+    },
+    "MID": {
+      "max_particles": 100000,
+      "classification": "SHOULD_REFERENCE"
+    },
+    "HIGH": {
+      "max_particles": 250000,
+      "classification": "SHOULD_REFERENCE"
+    },
+    "ULTRA": {
+      "max_particles": 1000000,
+      "classification": "REFERENCE_V0.1"
+    }
+  },
+  "resource_degradation_hypothesis": [
+    "FULL_MORPHOLOGY",
+    "REDUCED_DETAIL",
+    "SIMPLIFIED_MORPHOLOGY",
+    "SYMBOLIC_MORPHOLOGY",
+    "MINIMAL_SAFE_FIELD"
+  ],
+  "governance_research": {
+    "resource_aware_dampening": {
+      "status": "RESEARCH_CANDIDATE",
+      "purpose": "reduce rendering complexity while preserving semantic identity"
+    },
+    "governor_b": {
+      "status": "ARCHITECTURAL_PROPOSAL_NOT_IMPLEMENTED"
+    },
+    "dampening_transition_matrix": {
+      "status": "RESEARCH_CANDIDATE_NOT_IMPLEMENTED"
+    }
+  },
+  "canonical_ir_reference": {
+    "representation": "P8",
+    "vector": [
+      "x",
+      "y",
+      "z",
+      "phi",
+      "c",
+      "iota",
+      "kappa",
+      "rho"
+    ],
+    "phi_semantics": "intent_phase",
+    "note": "Do not interpret phi as physical oscillation phase."
+  },
+  "research_metrics": {
+    "computational": [
+      "frame_time",
+      "p50_frame_time",
+      "p95_frame_time",
+      "gpu_time",
+      "cpu_time",
+      "memory_usage"
+    ],
+    "scalability": [
+      "particle_count",
+      "field_resolution",
+      "sdf_layer_count"
+    ],
+    "determinism": [
+      "same_input_same_seed_same_output"
+    ],
+    "simulation": [
+      "stability",
+      "divergence",
+      "numerical_drift"
+    ],
+    "manifestation": [
+      "spatial_coherence",
+      "morphology_stability",
+      "shape_deviation"
+    ],
+    "perceptual": [
+      "recognition_accuracy",
+      "response_latency",
+      "human_confidence"
+    ]
+  },
+  "safety": {
+    "reduced_motion": "required_research_constraint",
+    "flicker_control": "required_research_constraint",
+    "thermal_behavior": "must_be_measured",
+    "photosensitivity": "must_be_evaluated_separately",
+    "no_claim_of_prevented_harm_without_evidence": true
+  },
+  "current_truth_boundary": {
+    "dynamic_sdf_runtime": "NOT_IMPLEMENTED",
+    "multi_layer_sdf_composer": "NOT_IMPLEMENTED",
+    "governor_b_runtime": "NOT_IMPLEMENTED",
+    "dampening_transition_matrix": "NOT_IMPLEMENTED",
+    "automatic_hardware_tier_fallback": "NOT_ESTABLISHED",
+    "figurative_sdf_pipeline": "NOT_ESTABLISHED"
+  },
+  "required_evidence_before_canonicalization": [
+    "reproducible_benchmark",
+    "device_matrix",
+    "determinism_test",
+    "morphology_quality_measurement",
+    "perceptual_evaluation",
+    "resource_degradation_evaluation",
+    "safety_evaluation"
+  ]
+}
