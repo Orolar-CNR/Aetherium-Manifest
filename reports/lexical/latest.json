@@ -1,0 +1,28 @@
+{
+  "status": "PASS",
+  "policy_version": "0.2",
+  "linter_version": "2",
+  "repository": "Aetherium-Manifest",
+  "commit": "a1a40c27f49afe4587541cd6e82010bff9e2df7e",
+  "timestamp": "2026-09-04T14:05:16.332492+00:00",
+  "scanned_files_count": 90,
+  "scanned_extensions": [
+    ".css",
+    ".html",
+    ".js",
+    ".json",
+    ".md",
+    ".py",
+    ".yaml",
+    ".yml"
+  ],
+  "violations": [],
+  "skipped_files_count": 6,
+  "exempt_files": [
+    "docs/governance/AETHERIUM-LEXICAL-BOUNDARY-POLICY-v0.1.md",
+    "reports/lexical/latest.json",
+    "tools/lexical/aetherium-interaction-linter-v2.py",
+    "tools/lexical/aetherium-lexical-policy.json",
+    "tools/lexical/tests/test_linter.py"
+  ]
+}
