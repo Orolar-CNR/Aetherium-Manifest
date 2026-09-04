@@ -5,7 +5,9 @@ import { fileURLToPath } from "node:url";
 import {
   createVisualState,
   validateVisualState,
-  clampVisualState
+  clampVisualState,
+  mapIntentToVisualState,
+  INTENT_MAPPING_DICTIONARY
 } from "../runtime/visual-state.js";
 import {
   initializeParticles,
@@ -356,6 +358,49 @@ runTest("WebGPU: shader source contains no forbidden semantic strings or fields"
     assert.match(source, /@compute|@vertex|@fragment/);
     for (const token of forbidden) assert.strictEqual(source.includes(token), false, `${path.basename(shaderPath)} contains forbidden token ${token}`);
   }
+});
+
+
+/* ---------------------------------------------------------
+ * Intent-to-Parameter Mapping Engine Unit Tests
+ * --------------------------------------------------------- */
+
+runTest("Intent Mapping: Cognitive tones map to valid canonical Visual States", () => {
+  const tones = ["certainty", "caution", "exploration", "contemplation", "conviction", "hesitation", "inquiry", "deep_reasoning"];
+
+  for (const tone of tones) {
+    const state = mapIntentToVisualState(tone);
+    assert.strictEqual(validateVisualState(state), true, `Mapped state for tone "${tone}" must validate under validateVisualState`);
+    assert.ok(state.phase, `Tone "${tone}" must produce a valid phase`);
+    assert.ok(state.shape, `Tone "${tone}" must produce a valid shape`);
+    assert.strictEqual(typeof state.hue, "number");
+    assert.strictEqual(typeof state.energy, "number");
+    assert.strictEqual(typeof state.density, "number");
+    assert.strictEqual(typeof state.turbulence, "number");
+    assert.strictEqual(typeof state.coherence, "number");
+    assert.strictEqual(typeof state.confidence, "number");
+  }
+});
+
+runTest("Intent Mapping: Supports object input with tone and custom overrides", () => {
+  const state = mapIntentToVisualState({ tone: "caution", energy: 0.5 }, { hue: 45 });
+  assert.strictEqual(validateVisualState(state), true);
+  assert.strictEqual(state.phase, "WARNING");
+  assert.strictEqual(state.shape, "triangle");
+  assert.strictEqual(state.energy, 0.5);
+  assert.strictEqual(state.hue, 45);
+});
+
+runTest("Intent Mapping: Unknown tone without phase override throws error", () => {
+  assert.throws(() => mapIntentToVisualState("unknown_tone_x"), /Unknown intent tone/);
+});
+
+runTest("Intent Mapping: Unknown tone with phase and shape override succeeds", () => {
+  const state = mapIntentToVisualState("unknown_tone_x", { phase: "PROCESSING", shape: "sphere", turbulence: 0.2 });
+  assert.strictEqual(validateVisualState(state), true);
+  assert.strictEqual(state.phase, "PROCESSING");
+  assert.strictEqual(state.shape, "sphere");
+  assert.strictEqual(state.turbulence, 0.2);
 });
 
 console.log(`\nTests Completed: ${passed} Passed, ${failed} Failed`);

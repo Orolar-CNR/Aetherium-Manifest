@@ -40,6 +40,93 @@ const NUMERIC_FIELDS = {
 const ALLOWED_KEYS = new Set(["phase", "shape", ...Object.keys(NUMERIC_FIELDS)]);
 
 /**
+ * Intent-to-Parameter Mapping Dictionaries
+ * Maps cognitive tones to contract parameter configurations.
+ */
+export const INTENT_MAPPING_DICTIONARY = Object.freeze({
+  certainty: {
+    phase: "RESPONDING",
+    shape: "sphere",
+    hue: 210,
+    energy: 0.85,
+    density: 0.85,
+    turbulence: 0.05,
+    coherence: 0.95,
+    confidence: 0.95
+  },
+  conviction: {
+    phase: "RESPONDING",
+    shape: "sphere",
+    hue: 210,
+    energy: 0.85,
+    density: 0.85,
+    turbulence: 0.05,
+    coherence: 0.95,
+    confidence: 0.95
+  },
+  caution: {
+    phase: "WARNING",
+    shape: "triangle",
+    hue: 35,
+    energy: 0.3,
+    density: 0.4,
+    turbulence: 0.55,
+    coherence: 0.4,
+    confidence: 0.5
+  },
+  hesitation: {
+    phase: "WARNING",
+    shape: "triangle",
+    hue: 35,
+    energy: 0.3,
+    density: 0.4,
+    turbulence: 0.55,
+    coherence: 0.4,
+    confidence: 0.5
+  },
+  exploration: {
+    phase: "PROCESSING",
+    shape: "spiral",
+    hue: 280,
+    energy: 0.75,
+    density: 0.65,
+    turbulence: 0.45,
+    coherence: 0.6,
+    confidence: 0.7
+  },
+  inquiry: {
+    phase: "PROCESSING",
+    shape: "wave",
+    hue: 270,
+    energy: 0.7,
+    density: 0.6,
+    turbulence: 0.4,
+    coherence: 0.65,
+    confidence: 0.65
+  },
+  contemplation: {
+    phase: "PROCESSING",
+    shape: "sphere",
+    hue: 190,
+    energy: 0.25,
+    density: 0.9,
+    turbulence: 0.05,
+    coherence: 0.95,
+    confidence: 0.85
+  },
+  deep_reasoning: {
+    phase: "PROCESSING",
+    shape: "sphere",
+    hue: 190,
+    energy: 0.25,
+    density: 0.9,
+    turbulence: 0.05,
+    coherence: 0.95,
+    confidence: 0.85
+  }
+});
+
+/**
  * Validates a Visual State against the contract specification in
  * contracts/visual-state.schema.json.
  * Pure, non-mutating validation. Never clamps or fills defaults -- an object is
@@ -135,6 +222,45 @@ export function createVisualState(candidate) {
   }
 
   return canonicalState;
+}
+
+/**
+ * Maps a cognitive intent tone or intent payload to a canonical Visual State.
+ *
+ * @param {string|object} intentInput - Cognitive tone string (e.g. "certainty", "caution", "exploration", "contemplation") or object containing tone/parameters.
+ * @param {object} [overrides={}] - Optional property overrides to apply on top of the mapped dictionary state.
+ * @returns {object} A new, strictly valid canonical VisualState object.
+ * @throws {Error|TypeError} If the intent tone is unknown and no valid candidate phase/shape are provided, or if validation fails.
+ */
+export function mapIntentToVisualState(intentInput, overrides = {}) {
+  let toneKey = null;
+  let baseCandidate = {};
+
+  if (typeof intentInput === "string") {
+    toneKey = intentInput.toLowerCase().trim();
+  } else if (intentInput && typeof intentInput === "object" && !Array.isArray(intentInput)) {
+    if (typeof intentInput.tone === "string") {
+      toneKey = intentInput.tone.toLowerCase().trim();
+    }
+    const { tone, ...restInput } = intentInput;
+    baseCandidate = { ...restInput };
+  } else {
+    throw new TypeError("intentInput must be a cognitive tone string or an object");
+  }
+
+  const mappedDict = toneKey ? INTENT_MAPPING_DICTIONARY[toneKey] : null;
+
+  if (!mappedDict && !baseCandidate.phase && !overrides.phase) {
+    throw new Error(`Unknown intent tone: ${toneKey || intentInput}`);
+  }
+
+  const candidate = {
+    ...(mappedDict || {}),
+    ...baseCandidate,
+    ...overrides
+  };
+
+  return createVisualState(candidate);
 }
 
 /**
