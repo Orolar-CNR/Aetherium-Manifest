@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aetherium.dev/schemas/research/world-state.schema.json",
+  "title": "Aetherium WorldState Research Schema",
+  "description": "Schema for persistent environmental state in Aetherium Environmental Dynamics Runtime (Research Only).",
+  "type": "object",
+  "required": [
+    "version",
+    "timestamp",
+    "step",
+    "global_energy",
+    "coherence",
+    "entropy",
+    "fields",
+    "disturbances"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "timestamp": {
+      "type": "number",
+      "minimum": 0
+    },
+    "step": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "global_energy": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "coherence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "entropy": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "center", "radius", "intensity", "frequency"],
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "type": "string" },
+          "center": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "radius": { "type": "number", "minimum": 0 },
+          "intensity": { "type": "number", "minimum": 0, "maximum": 1 },
+          "frequency": { "type": "number", "minimum": 0 }
+        }
+      }
+    },
+    "disturbances": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "position", "amplitude", "decay_rate", "age"],
+        "properties": {
+          "id": { "type": "string" },
+          "position": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "amplitude": { "type": "number", "minimum": 0, "maximum": 1 },
+          "decay_rate": { "type": "number", "minimum": 0 },
+          "age": { "type": "number", "minimum": 0 }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
