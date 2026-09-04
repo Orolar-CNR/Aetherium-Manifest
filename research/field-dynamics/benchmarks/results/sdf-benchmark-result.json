@@ -1,0 +1,120 @@
+{
+  "timestamp": "2026-09-04T10:22:38.502Z",
+  "git_commit": "1c66f7ebf5e892d736370aba3e25cd19cce084f1",
+  "environment": "node v22.22.1 (linux x64)",
+  "device_runtime_information": "Linux 6.8.0 | CPUs: 4 x Intel(R) Xeon(R) Processor @ 2.30GHz | Total Mem: 7959 MB",
+  "document_id": "AETHERIUM-SDF-BENCHMARK-RUN-v0.1",
+  "status": "RESEARCH_NON_CANONICAL",
+  "configuration": {
+    "steps_per_experiment": 30,
+    "time_step": 0.016,
+    "sdf_resolution": "UNAVAILABLE",
+    "sdf_layer_count": 3
+  },
+  "scaling_experiments": [
+    {
+      "profile": "LOW",
+      "particle_count": 20000,
+      "sdf_resolution": "UNAVAILABLE",
+      "sdf_layer_count": 3,
+      "frame_time": "85.469 ms",
+      "p50_frame_time": "82.241 ms",
+      "p95_frame_time": "96.413 ms",
+      "memory_usage": "5.82 MB",
+      "degradation_configuration": "FULL",
+      "observed_result": "Average frame time 85.469 ms with morphology error 0.6358"
+    },
+    {
+      "profile": "MID",
+      "particle_count": 100000,
+      "sdf_resolution": "UNAVAILABLE",
+      "sdf_layer_count": 3,
+      "frame_time": "400.945 ms",
+      "p50_frame_time": "399.035 ms",
+      "p95_frame_time": "422.925 ms",
+      "memory_usage": "7.31 MB",
+      "degradation_configuration": "FULL",
+      "observed_result": "Average frame time 400.945 ms with morphology error 0.6353"
+    },
+    {
+      "profile": "HIGH",
+      "particle_count": 250000,
+      "sdf_resolution": "UNAVAILABLE",
+      "sdf_layer_count": 3,
+      "frame_time": "1003.487 ms",
+      "p50_frame_time": "960.528 ms",
+      "p95_frame_time": "1461.536 ms",
+      "memory_usage": "8.32 MB",
+      "degradation_configuration": "FULL",
+      "observed_result": "Average frame time 1003.487 ms with morphology error 0.635"
+    }
+  ],
+  "degradation_experiments": [
+    {
+      "degradation_configuration": "FULL",
+      "particle_count": 100000,
+      "sdf_resolution": "UNAVAILABLE",
+      "sdf_layer_count": 3,
+      "frame_time": "383.118 ms",
+      "p50_frame_time": "382.43 ms",
+      "p95_frame_time": "392.035 ms",
+      "memory_usage": "7.32 MB",
+      "observed_result": "Average frame time 383.118 ms with morphology error 0.6832"
+    },
+    {
+      "degradation_configuration": "REDUCED_DETAIL",
+      "particle_count": 100000,
+      "sdf_resolution": "UNAVAILABLE",
+      "sdf_layer_count": 3,
+      "frame_time": "164.775 ms",
+      "p50_frame_time": "164.856 ms",
+      "p95_frame_time": "168.504 ms",
+      "memory_usage": "4.88 MB",
+      "observed_result": "Average frame time 164.775 ms with morphology error 1.1307"
+    },
+    {
+      "degradation_configuration": "SIMPLIFIED",
+      "particle_count": 100000,
+      "sdf_resolution": "UNAVAILABLE",
+      "sdf_layer_count": 3,
+      "frame_time": "118.337 ms",
+      "p50_frame_time": "116.007 ms",
+      "p95_frame_time": "141.241 ms",
+      "memory_usage": "11.37 MB",
+      "observed_result": "Average frame time 118.337 ms with morphology error 1.237"
+    },
+    {
+      "degradation_configuration": "SYMBOLIC",
+      "particle_count": 100000,
+      "sdf_resolution": "UNAVAILABLE",
+      "sdf_layer_count": 3,
+      "frame_time": "70.456 ms",
+      "p50_frame_time": "68.834 ms",
+      "p95_frame_time": "85.882 ms",
+      "memory_usage": "10.65 MB",
+      "observed_result": "Average frame time 70.456 ms with morphology error 1.237"
+    },
+    {
+      "degradation_configuration": "MINIMAL_SAFE_FIELD",
+      "particle_count": 100000,
+      "sdf_resolution": "UNAVAILABLE",
+      "sdf_layer_count": 1,
+      "frame_time": "72.633 ms",
+      "p50_frame_time": "71.58 ms",
+      "p95_frame_time": "86.632 ms",
+      "memory_usage": "9.93 MB",
+      "observed_result": "Average frame time 72.633 ms with morphology error 1.6546"
+    }
+  ],
+  "determinism_check": {
+    "seed": 999,
+    "particle_count": 10000,
+    "sdf_resolution": "UNAVAILABLE",
+    "sdf_layer_count": 3,
+    "determinism_result": "PASS",
+    "hash_match": true,
+    "sampleSum_A": 18417656,
+    "sampleSum_B": 18417656,
+    "observed_result": "Deterministic state sum match: 18417656"
+  }
+}

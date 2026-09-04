@@ -1,6 +1,11 @@
 # Aetherium Manifest
 
-Aetherium Light Manifest is a perception-oriented perceptual interface rendered as light and particle formation. It translates user intent directly into structured fluid manifestations without relying on traditional textual feedback.
+Aetherium Light Manifest is a perception-oriented perceptual interface rendered as light and particle formation. It processes input messages directly into structured fluid manifestations without relying on traditional textual feedback.
+
+The Phase 0.x primary interaction flow is:
+
+«Receive Message → Process → Manifest as Light»
+(«Message Input → Visual Interpretation → Light Manifestation» / «รับข้อความ → ประมวลผล → ส่งออกเป็นอานุภาพแสง»)
 
 ---
 
@@ -20,8 +25,9 @@ Aetherium Light Manifest is a perception-oriented perceptual interface rendered 
 
 ## Core Architectural Philosophy
 
+The text input field is an input channel that receives a user's message. It is not a conversational answer surface.
 The system **intentionally does not return textual answers** in the visual surface.
-The manifestation response is represented purely through physical phenomena:
+The primary output is environmental manifestation through physical phenomena:
 * **Light & Color**: Direct HSL color wheel transitions mapping semantic energy.
 * **Particle Formation**: Coordinated geometric coordinate fields.
 * **Motion & Morphology**: Smooth interpolation, noise, and structural transition.
@@ -29,14 +35,18 @@ The manifestation response is represented purely through physical phenomena:
 
 ---
 
-## Architecture & Rendering Pipeline
+## Architecture & Truth Boundary
+
+### Current Engineering Reality (Phase 0.x Runtime)
 
 ```text
-User Intent (Input Text / Signal)
+Message Input (User input text / signal)
             ↓
-  Phase-0 Interpreter (Local heuristic mapping)
+  System Receives Message
             ↓
-  Visual State Contract (JSON Schema & Runtime Clamping)
+  Local Interpreter (Process & interpret input message)
+            ↓
+  Visual State Contract (Generate visual state: JSON Schema & Runtime Clamping)
             ↓
   Backend Selection (Auto / WebGPU / Canvas2D)
       ┌─────┴────────────────────────┐
@@ -46,8 +56,18 @@ WebGPU Manifestation Path      Canvas2D Reference Path
       ↓                              ↓
 Numeric GPU Parameters         HTML5 Canvas 2D Surface
       ↓
-WGSL Compute & Render Shaders
+WGSL Compute & Render Shaders (Output / Manifest as Light & Particles)
 ```
+
+### Canonical / Future Specification (Phase 1 Target Pipeline)
+
+```text
+Human Signal → Intent → AETH Compiler → Presence IR → Governor A/B → Manifestation Runtime
+```
+
+The Phase 0.x runtime performs local message interpretation and visual state generation directly, without executing the Phase 1 canonical pipeline.
+
+---
 
 ### Backend Selection & Dual-Path Rendering
 * **URL Parameter Control**: Force or test specific rendering backends using `?renderer=auto`, `?renderer=webgpu`, or `?renderer=canvas`.
@@ -62,6 +82,7 @@ WGSL Compute & Render Shaders
 
 * **Field Dynamics Research**: Located in `docs/research/field-dynamics/` (including Research Notes, Benchmark Matrices, and Baseline Metadata Schema).
 * **Status**: **RESEARCH CANDIDATE** — These documents represent exploratory research into field dynamics and baseline metadata. They are **non-canonical** and MUST NOT be confused with or substituted for active contracts (`Visual State`, `Presence IR`, `Governor`, or `Manifest Contract`).
+* **Dynamic SDF Benchmark**: Reproducible via `npm run benchmark:sdf` with machine-readable and human-readable results written to `research/field-dynamics/benchmarks/results/`.
 
 ---
 
@@ -84,7 +105,7 @@ To start the interface locally, serve the root directory using any standard stat
 
 ---
 
-## Testing
+## Testing & Benchmarks
 
 To run the complete verification test suite (Visual State Contract + WebGPU Adapter + WebGPU Shader Invariants), execute:
 
@@ -96,6 +117,12 @@ To run WebGPU specific tests:
 
 ```bash
 npm run test:webgpu
+```
+
+To run the Dynamic SDF Research Benchmark:
+
+```bash
+npm run benchmark:sdf
 ```
 
 ---

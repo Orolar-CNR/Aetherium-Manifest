@@ -17,16 +17,16 @@ import { TemporalSignalFusion } from "./runtime/temporal-signal-fusion.js";
 // --- Localization Structure ---
 const LOCALIZATION = {
   th: {
-    placeholder: "ส่งเจตจำนง...",
-    ariaLabelInput: "บอกสิ่งที่ต้องการ",
-    ariaLabelButton: "ส่งเจตจำนง",
+    placeholder: "ป้อนข้อความ...",
+    ariaLabelInput: "ป้อนข้อความ",
+    ariaLabelButton: "รับข้อความ",
     voiceListening: "กำลังรับฟัง…",
     voiceError: "ไม่สามารถรับเสียงได้"
   },
   en: {
-    placeholder: "Send intent...",
-    ariaLabelInput: "Express intent",
-    ariaLabelButton: "Send intent",
+    placeholder: "Input message...",
+    ariaLabelInput: "Input message",
+    ariaLabelButton: "Process message",
     voiceListening: "Listening...",
     voiceError: "Voice input unavailable"
   }
