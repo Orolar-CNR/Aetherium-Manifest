@@ -31,10 +31,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      - name: Lexical CI/CD Boundary Gate
+        run: |
+          echo "Executing Lexical CI/CD Boundary Gate..."
+          python3 tools/lexical/aetherium-interaction-linter-v2.py \
+            --root . \
+            --policy tools/lexical/aetherium-lexical-policy.json \
+            --output reports/lexical/latest.json \
+            --strict
 
       - name: Validate files and contract
         run: |

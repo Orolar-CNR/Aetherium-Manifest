@@ -1,0 +1,63 @@
+{
+  "policy_version": "0.2",
+  "policy_name": "Aetherium Lexical Boundary Policy",
+  "description": "Deterministic boundary gate preventing prohibited architectural terminology drift across working documents and source files.",
+  "exempt_paths": [
+    "tools/lexical/aetherium-interaction-linter-v2.py",
+    "tools/lexical/aetherium-lexical-policy.json",
+    "tools/lexical/tests/test_linter.py",
+    "docs/governance/AETHERIUM-LEXICAL-BOUNDARY-POLICY-v0.1.md",
+    "reports/lexical/latest.json"
+  ],
+  "scanned_extension_groups": {
+    "application_and_docs": [
+      ".md",
+      ".js",
+      ".html",
+      ".css",
+      ".json"
+    ],
+    "governance_and_ci": [
+      ".yml",
+      ".yaml",
+      ".py"
+    ]
+  },
+  "rules": {
+    "PROHIBITED_EN": [
+      {
+        "id": "LEX-EN-001",
+        "pattern": "\\b sending\\s+intent \\b",
+        "raw_regex": "\\bsending\\s+intent\\b",
+        "description": "Prohibits 'sending intent' phrasing in English.",
+        "severity": "ERROR"
+      },
+      {
+        "id": "LEX-EN-002",
+        "pattern": "\\b transmitting\\s+intent \\b",
+        "raw_regex": "\\btransmitting\\s+intent\\b",
+        "description": "Prohibits 'transmitting intent' phrasing in English.",
+        "severity": "ERROR"
+      },
+      {
+        "id": "LEX-EN-003",
+        "pattern": "\\b intent\\s+transmission \\b",
+        "raw_regex": "\\bintent\\s+transmission\\b",
+        "description": "Prohibits 'intent transmission' phrasing in English.",
+        "severity": "ERROR"
+      },
+      {
+        "id": "LEX-EN-004",
+        "pattern": "\\b sending\\s+intention \\b",
+        "raw_regex": "\\bsending\\s+intention\\b",
+        "description": "Prohibits 'sending intention' phrasing in English.",
+        "severity": "ERROR"
+      }
+    ],
+    "PROHIBITED_TH": []
+  },
+  "approved_conceptual_flow": {
+    "english": "Receive Message → Process → Manifest as Light",
+    "thai": "รับข้อความ → ประมวลผล → ส่งออกเป็นอานุภาพแสง"
+  }
+}
