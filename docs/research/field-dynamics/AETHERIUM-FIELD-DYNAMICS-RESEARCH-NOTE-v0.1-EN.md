@@ -89,3 +89,17 @@ To ensure fair and measurable comparisons, evaluations between both architecture
 >
 > * **Preserve Baseline:** All research must proceed under the assumption that the current **WebGPU Particle PoC** remains the primary **Baseline Renderer** and must not be interfered with.
 > * **Renderer as Downstream:** **Shaders** must function strictly as an **Execution Layer** for computation. Injecting semantic interpretation logic (**Semantic Authority**) into shaders is strictly prohibited.
+
+---
+
+## Reproducibility
+
+Benchmark command:
+`npm run benchmark:sdf`
+
+Output directory:
+`research/field-dynamics/benchmarks/results/`
+
+Expected output:
+`research/field-dynamics/benchmarks/results/*.json`
+`research/field-dynamics/benchmarks/results/*.md`

@@ -86,3 +86,17 @@
 1. **แสดง Manifestation** แก่ผู้ทดสอบ (โดยปกปิดว่าเป็น Backend ชนิดใด)
 2. **กำหนดให้ผู้ทดสอบเลือก** **Semantic State** ที่ตรงกับสิ่งที่มองเห็นมากที่สุด
 3. **ระบบบันทึก:** **Accuracy** (ความถูกต้อง), **Response Time** (ระยะเวลาตัดสินใจ), และให้ผู้ทดสอบระบุ **Confidence Score**
+
+---
+
+## Reproducibility
+
+Benchmark command:
+`npm run benchmark:sdf`
+
+Output directory:
+`research/field-dynamics/benchmarks/results/`
+
+Expected output:
+`research/field-dynamics/benchmarks/results/*.json`
+`research/field-dynamics/benchmarks/results/*.md`

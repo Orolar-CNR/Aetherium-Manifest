@@ -5,6 +5,7 @@
   "scripts": {
     "test": "node tests/visual-state.test.js && node tests/webgpu/adapter.test.js && node tests/webgpu/shader-invariants.test.js && node tests/baseline-snapshot.test.js && node tests/perceptual-harness.test.js && node tests/temporal-signal-fusion.test.js",
     "serve": "python3 -m http.server 8080",
+    "benchmark:sdf": "node research/field-dynamics/benchmarks/sdf-benchmark.js",
     "test:webgpu": "node tests/webgpu/adapter.test.js && node tests/webgpu/shader-invariants.test.js",
     "test:perceptual": "node tests/perceptual-harness.test.js",
     "test:baseline": "node tests/baseline-snapshot.test.js"

@@ -86,3 +86,17 @@ Standardized protocol for gathering **Evaluation Measurements**:
 1. **Present manifestation** to observer (blinded to the underlying backend type).
 2. **Prompt observer to select** the **Semantic State** that best matches the visual observation.
 3. **System records:** **Accuracy**, **Response Time**, and prompts for user **Confidence Score**.
+
+---
+
+## Reproducibility
+
+Benchmark command:
+`npm run benchmark:sdf`
+
+Output directory:
+`research/field-dynamics/benchmarks/results/`
+
+Expected output:
+`research/field-dynamics/benchmarks/results/*.json`
+`research/field-dynamics/benchmarks/results/*.md`

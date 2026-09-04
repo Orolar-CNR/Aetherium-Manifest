@@ -89,3 +89,17 @@
 >
 > * **Preserve Baseline:** การศึกษาทั้งหมดต้องดำเนินการบนสมมติฐานว่า **WebGPU Particle PoC** ปัจจุบันคือ **Baseline Renderer** หลักที่ห้ามถูกแทรกแซง
 > * **Renderer as Downstream:** **Shader** ต้องทำหน้าที่ประมวลผลการคำนวณ (**Execution Layer**) เท่านั้น ห้ามใส่ตรรกะการตีความความหมาย (**Semantic Authority**) ลงใน **Shader** เด็ดขาด
+
+---
+
+## Reproducibility
+
+Benchmark command:
+`npm run benchmark:sdf`
+
+Output directory:
+`research/field-dynamics/benchmarks/results/`
+
+Expected output:
+`research/field-dynamics/benchmarks/results/*.json`
+`research/field-dynamics/benchmarks/results/*.md`

@@ -404,3 +404,17 @@ Perceptual Evidence
 Runtime Safety Evidence
 
 ไม่ใช่จากสมมติฐานทางสถาปัตยกรรมเพียงอย่างเดียว
+
+---
+
+## Reproducibility
+
+Benchmark command:
+`npm run benchmark:sdf`
+
+Output directory:
+`research/field-dynamics/benchmarks/results/`
+
+Expected output:
+`research/field-dynamics/benchmarks/results/*.json`
+`research/field-dynamics/benchmarks/results/*.md`
