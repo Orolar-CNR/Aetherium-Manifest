@@ -54,7 +54,7 @@ To rigorously evaluate the spatial state research proposal without ungrounded sp
 ### 3.2 CEA-CR: Claim Review & Evidence Mapping
 * **Claim 1 (Decoupled State Machine Superiority):** Decoupling state transition control from LLM decoding temperature guarantees determinism and eliminates accumulated state drift.
   * *Evidence in Repository:* `research/world-model/transition-rules/transition-rules.js` and `tests/world-model/world-model.test.js` demonstrate $100\%$ byte-level identical state hash reproduction across independent test runs.
-  * *Classification:* `IMPLEMENTED_AND_VERIFIED` for basic physical field mechanics; `RESEARCH_HYPOTHESIS` for full LLM multi-agent benchmarks.
+  * *Classification:* `PARTIAL_VERIFICATION` for basic physical field mechanics; `RESEARCH_HYPOTHESIS` for full LLM multi-agent benchmarks.
 * **Claim 2 (Two-Tier Dataset Requirement):** Distinguishing semantic world knowledge from explicit state transition trajectories prevents overfitting and semantic hallucination.
   * *Evidence in Repository:* `research/world-model/scenarios/scenario-corpus.js` provides structured scenario inputs.
   * *Classification:* `RESEARCH_SPECIFICATION`.
@@ -140,7 +140,7 @@ To isolate performance gains attributable to explicit state persistence versus c
 3. **Baseline 3 (B3 - Vision-Language Models):** Multimodal model processing visual grid snapshots at each step.
 4. **Baseline 4 (B4 - Decoupled State Machine Architecture):** Aetherium experimental architecture where the LLM parses intent while an independent, deterministic state machine computes state transitions.
 
-> **RESEARCH STATUS OF B4:** B4 is classified as a `RESEARCH_HYPOTHESIS`. It is **NOT** a canonical architecture decision for Aetherium's production runtime.
+> **RESEARCH STATUS OF B4:** B4 is classified strictly as a `RESEARCH_HYPOTHESIS`. It is **NOT** a canonical architecture decision or production runtime model for Aetherium.
 
 ---
 
@@ -150,10 +150,10 @@ To prevent architectural drift and maintain scientific integrity, concepts ident
 
 | Concept Name | Proposed Description | Repository Evidence Level | Final Research Classification |
 | :--- | :--- | :--- | :--- |
-| **Explicit Spatial State ($S_t$)** | Numerical vector state for energy, fields, disturbances. | Code exists in `research/world-model/world-state/` | `VERIFIED_RESEARCH_PROTOTYPE` |
-| **Deterministic Transition Rules ($\Phi$)** | Field propagation, decay, superposition math. | Code exists in `research/world-model/transition-rules/` | `VERIFIED_RESEARCH_PROTOTYPE` |
-| **ManifestationProxy Compilation** | Spatial region & density compilation without GPU leakage. | Code exists in `research/world-model/proxy-state/` | `VERIFIED_RESEARCH_PROTOTYPE` |
-| **SDF-Driven Manifestation** | Signed Distance Field representation for spatial bounds. | Benchmarked in `research/field-dynamics/` | `ISOLATED_RESEARCH_CANDIDATE` |
+| **Explicit Spatial State ($S_t$)** | Numerical vector state for energy, fields, disturbances. | Code exists in `research/world-model/world-state/` | `ISOLATED_RESEARCH_PROTOTYPE` |
+| **Deterministic Transition Rules ($\Phi$)** | Field propagation, decay, superposition math. | Code exists in `research/world-model/transition-rules/` | `ISOLATED_RESEARCH_PROTOTYPE` |
+| **ManifestationProxy Compilation** | Spatial region & density compilation without GPU leakage. | Code exists in `research/world-model/proxy-state/` | `ISOLATED_RESEARCH_PROTOTYPE` |
+| **SDF-Driven Manifestation** | Signed Distance Field representation for spatial bounds. | Benchmarked in `research/field-dynamics/` | `ISOLATED_RESEARCH_PROTOTYPE` |
 | **8D Manifold State Space** | 8-dimensional cognitive/spatial state manifold. | Documented in research notes; no runtime implementation | `VISION / SPECULATIVE_DESIGN` |
 | **Attractor Forces & Fracture** | Dynamic field fracture and attractor manifold collapse. | Mathematical proposal only | `VISION / SPECULATIVE_DESIGN` |
 | **Token Density & Semantic Coherence** | Direct mapping from LLM attention weights to visual density. | Theoretical hypothesis | `UNVERIFIED_HYPOTHESIS` |
