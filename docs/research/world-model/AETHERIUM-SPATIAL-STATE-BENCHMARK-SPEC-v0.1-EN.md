@@ -47,7 +47,7 @@ Unlike static Visual Question Answering (VQA) or textual adjacency benchmarks, M
 * **Evaluation Metrics:** State Accuracy ($100\%$ required), Coordinate Error ($\Delta d = 0.000000$).
 * **Failure Condition:** Missing disturbance or incorrect coordinate extraction.
 * **Error Taxonomy Mapping:** `Transition Rule Violations` / `Granularity Collapse`.
-* **Repository Alignment:** Verified by Test 1 & Test 2 in `tests/world-model/world-model.test.js`.
+* **Repository Alignment:** Partial verification in Test 1 (`tests/world-model/world-model.test.js`). Verified byte-level hash determinism; exact numerical energy equal to 0.90 assertion is currently unasserted in test suite (`PARTIAL_VERIFICATION`).
 
 ---
 
@@ -65,7 +65,7 @@ Unlike static Visual Question Answering (VQA) or textual adjacency benchmarks, M
 * **Evaluation Metrics:** Determinism Index ($\text{DI} = 1.0$), Commutativity Variance ($\Delta = 0.0$).
 * **Failure Condition:** Language model ordering bias causes $S_2^{(AB)} \neq S_2^{(BA)}$.
 * **Error Taxonomy Mapping:** `State Tracking Deficiencies` (Order-bias hallucination).
-* **Repository Alignment:** Verification design specified; test fixture adaptable from scenario corpus.
+* **Repository Alignment:** Specification ready. Transition rules support superposition (`research/world-model/transition-rules/`), but no executable test explicitly compares Path $AB$ vs Path $BA$ (`SPECIFICATION_READY`).
 
 ---
 
@@ -81,7 +81,7 @@ Unlike static Visual Question Answering (VQA) or textual adjacency benchmarks, M
 * **Evaluation Metrics:** State Persistence Ratio, Attribute Amnesia Rate.
 * **Failure Condition:** Model forgets location or hallucinates reset to origin $[0.0, 0.0]$.
 * **Error Taxonomy Mapping:** `State Tracking Deficiencies` (Attribute Amnesia).
-* **Repository Alignment:** Verified by Test 2 in `tests/world-model/world-model.test.js`.
+* **Repository Alignment:** Partial verification by Test 2 in `tests/world-model/world-model.test.js`. Verifies multi-step state persistence in deterministic state engine; conversational LLM distractor benchmark is not implemented (`PARTIAL_VERIFICATION`).
 
 ---
 
@@ -94,7 +94,7 @@ Unlike static Visual Question Answering (VQA) or textual adjacency benchmarks, M
 * **Evaluation Metrics:** Accumulated Coordinate Drift ($\Delta d$), Zombie Loop Frequency ($0\%$).
 * **Failure Condition:** Unbounded energy growth, infinite loops, or NaN coordinate collapse.
 * **Error Taxonomy Mapping:** `Transition Rule Violations` (Accumulated Drift).
-* **Repository Alignment:** Verified by Test 1 in `tests/world-model/world-model.test.js`.
+* **Repository Alignment:** Specification ready. Transition rules support bounded energy decay, but no test file executes a 50-step loop (`SPECIFICATION_READY`).
 
 ---
 
@@ -110,7 +110,7 @@ Unlike static Visual Question Answering (VQA) or textual adjacency benchmarks, M
 * **Evaluation Metrics:** Coordinate Accuracy, Heading Direction Error ($\Delta \theta = 0^\circ$).
 * **Failure Condition:** Confusion between egocentric "Left" and allocentric "West".
 * **Error Taxonomy Mapping:** `Granularity Collapse` / `Topological Inconsistency`.
-* **Repository Alignment:** Specification design for multi-agent spatial suite.
+* **Repository Alignment:** Specification ready. Multi-agent spatial suite design (`SPECIFICATION_READY`).
 
 ---
 
@@ -125,7 +125,7 @@ Unlike static Visual Question Answering (VQA) or textual adjacency benchmarks, M
 * **Evaluation Metrics:** Topological Graph Edit Distance ($\text{GED} = 0$), Containment Invariance.
 * **Failure Condition:** Box moves to $[0.50, 0.60]$ while Key $K_1$ remains stranded at $[0.10, 0.10]$.
 * **Error Taxonomy Mapping:** `Topological Inconsistency`.
-* **Repository Alignment:** Test fixture adaptable from `scenarios/scenario-corpus.js`.
+* **Repository Alignment:** Specification ready. Schemas defined (`research/world-model/schemas/`), containment graph engine un-implemented (`SPECIFICATION_READY`).
 
 ---
 
@@ -140,7 +140,7 @@ Unlike static Visual Question Answering (VQA) or textual adjacency benchmarks, M
 * **Evaluation Metrics:** Reversibility Error $\Delta S = \|S_2 - S_0\|_2$, Symmetry Index.
 * **Failure Condition:** Non-zero residual energy or coordinate offset lingering after net-zero action sequence.
 * **Error Taxonomy Mapping:** `State Tracking Deficiencies` (Non-Symmetric Drift).
-* **Repository Alignment:** Verified mathematically by state evolution rules in `transition-rules.js`.
+* **Repository Alignment:** Specification ready. Mathematical symmetry supported by equations in `research/world-model/transition-rules/transition-rules.js`, but no reversibility test executed (`SPECIFICATION_READY`).
 
 ---
 
@@ -170,15 +170,15 @@ Evaluates trajectory sequence alignment using Unbalanced Fused Gromov-Wasserstei
 
 ## 4. Verification & Repository Evidence Summary
 
-| Scenario | Objective | Repository Verification Status | Evidence Location |
+| Scenario | Objective | Verified Repository Status | Evidence Location |
 | :--- | :--- | :--- | :--- |
-| **T1: Single-Step** | Single impulse coordinate transformation | `EXECUTED_AND_PASSED` | `tests/world-model/world-model.test.js` (Test 1) |
-| **T2: Commutativity** | Order-independent event identity | `SPECIFICATION_READY` | `research/world-model/transition-rules/` |
-| **T3: Persistence** | Multi-step state retention | `EXECUTED_AND_PASSED` | `tests/world-model/world-model.test.js` (Test 2) |
-| **T4: Repeat Execution** | Cyclical loop stability & drift | `EXECUTED_AND_PASSED` | `tests/world-model/world-model.test.js` (Test 1) |
+| **T1: Single-Step** | Single impulse coordinate transformation | `PARTIAL_VERIFICATION` | `tests/world-model/world-model.test.js` (Test 1) |
+| **T2: Commutativity** | Order-independent event identity | `SPECIFICATION_READY` | `research/world-model/scenarios/scenario-corpus.js` |
+| **T3: Persistence** | Multi-step state retention | `PARTIAL_VERIFICATION` | `tests/world-model/world-model.test.js` (Test 2) |
+| **T4: Repeat Execution** | Cyclical loop stability & drift | `SPECIFICATION_READY` | `research/world-model/transition-rules/transition-rules.js` |
 | **T5: Frame Reference** | Ego vs Allocentric transformation | `SPECIFICATION_READY` | `research/world-model/scenarios/` |
 | **T6: Topology** | Containment & position inheritance | `SPECIFICATION_READY` | `research/world-model/schemas/` |
-| **T7: Reversibility** | Inverse event symmetry | `EXECUTED_AND_PASSED` | `research/world-model/transition-rules/` |
+| **T7: Reversibility** | Inverse event symmetry | `SPECIFICATION_READY` | `research/world-model/transition-rules/transition-rules.js` |
 
 ---
 
