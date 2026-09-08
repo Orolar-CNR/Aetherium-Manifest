@@ -1,8 +1,8 @@
 # Aetherium Environmental Dynamics Runtime Benchmark Report
 
 **Status:** RESEARCH | NON-CANONICAL | EXPERIMENTAL
-**Timestamp:** 2026-09-04T11:05:10.085Z
-**Total Execution Time:** 17 ms
+**Timestamp:** 2026-09-08T04:53:00.751Z
+**Total Execution Time:** 19 ms
 **Determinism Result:** ✅ 100% PASS
 
 ---
@@ -18,7 +18,7 @@ This benchmark validates the **Environmental Dynamics Runtime** research prototy
 ### Scenario A: Touch Impulse -> Local Field Disturbance -> Propagation (scenario-a-single-touch)
 
 * **Steps Executed:** 5
-* **Execution Time:** 1.973 ms
+* **Execution Time:** 2.065 ms
 * **Determinism Verification:** ✅ PASSED (Exact Canonical Equality)
 * **Final Energy:** 0.37
 * **Final Coherence:** 0.805
@@ -61,7 +61,7 @@ This benchmark validates the **Environmental Dynamics Runtime** research prototy
 ### Scenario B: Multi-touch Persistent Interference (scenario-b-multi-touch)
 
 * **Steps Executed:** 5
-* **Execution Time:** 13.589 ms
+* **Execution Time:** 14.403 ms
 * **Determinism Verification:** ✅ PASSED (Exact Canonical Equality)
 * **Final Energy:** 0.61
 * **Final Coherence:** 0.615
@@ -104,7 +104,7 @@ This benchmark validates the **Environmental Dynamics Runtime** research prototy
 ### Scenario C: Continuous Drag -> Directional Field Deformation (scenario-c-drag)
 
 * **Steps Executed:** 4
-* **Execution Time:** 0.364 ms
+* **Execution Time:** 0.438 ms
 * **Determinism Verification:** ✅ PASSED (Exact Canonical Equality)
 * **Final Energy:** 0.51
 * **Final Coherence:** 0.72
@@ -147,7 +147,7 @@ This benchmark validates the **Environmental Dynamics Runtime** research prototy
 ### Scenario D: Signal Event -> Environmental State Transition (scenario-d-message)
 
 * **Steps Executed:** 3
-* **Execution Time:** 0.152 ms
+* **Execution Time:** 0.147 ms
 * **Determinism Verification:** ✅ PASSED (Exact Canonical Equality)
 * **Final Energy:** 0.52
 * **Final Coherence:** 0.715
