@@ -3,17 +3,132 @@
  */
 
 import assert from 'assert';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 import { createInitialWorldState, serializeStateCanonical } from '../../research/world-model/world-state/world-state.js';
 import { createEnvironmentalEvent } from '../../research/world-model/event-model/event-model.js';
 import { evolveWorldState } from '../../research/world-model/transition-rules/transition-rules.js';
 import { compileManifestationProxy } from '../../research/world-model/proxy-state/manifestation-proxy.js';
 import { ALL_SCENARIOS } from '../../research/world-model/scenarios/scenario-corpus.js';
 
+import {
+  calculateAnalyticalOracle,
+  simulateExperimentalState,
+  evaluateDifferentialComparison,
+  runConvergenceExperiment,
+  addVector,
+  scaleVector,
+  subtractVector,
+  cloneState
+} from './harness.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 console.log('🧪 Starting Environmental Dynamics Runtime Research Test Suite...');
 
-// 1. Determinism Test
+// Load scenario fixture
+const fixturePath = path.join(__dirname, 'fixtures', 'scenario-t1.json');
+const fixture = JSON.parse(fs.readFileSync(fixturePath, 'utf-8'));
+
+// Test A — Analytical Oracle
 {
-  console.log('Test 1: Repeat Execution Determinism');
+  console.log('Test A: Analytical Oracle closed-form calculation');
+  const oracleResult = calculateAnalyticalOracle(fixture.initialState, fixture.targetTime);
+
+  // P(1.0) = [0,0,0] + [1.5,0,0]*1 + 0.5*[0.5,0,0]*1^2 = [1.75, 0, 0]
+  // V(1.0) = [1.5,0,0] + [0.5,0,0]*1 = [2.0, 0, 0]
+  assert.strictEqual(oracleResult.position[0], 1.75, 'Position X should be 1.75');
+  assert.strictEqual(oracleResult.position[1], 0, 'Position Y should be 0');
+  assert.strictEqual(oracleResult.position[2], 0, 'Position Z should be 0');
+  assert.strictEqual(oracleResult.velocity[0], 2.0, 'Velocity X should be 2.0');
+  console.log('  ✅ Analytical Oracle produced exact closed-form analytical reference');
+}
+
+// Test B — Numerical Integrator
+{
+  console.log('Test B: Semi-Implicit Euler state step advancement');
+  const experimentalResult = simulateExperimentalState(fixture.initialState, fixture.timestep, fixture.substeps);
+  assert.strictEqual(experimentalResult.elapsedTime, 1.0, 'Elapsed time should equal 1.0');
+  assert.strictEqual(typeof experimentalResult.position[0], 'number');
+  assert.strictEqual(typeof experimentalResult.velocity[0], 'number');
+  console.log('  ✅ Numerical Integrator advanced state step-by-step iteratively');
+}
+
+// Test C — Oracle Coupling Guard (Non-zero approximation error assertion)
+{
+  console.log('Test C: Oracle Coupling Guard (Divergence Check)');
+  const evalResult = evaluateDifferentialComparison(fixture);
+  assert.strictEqual(evalResult.positionError > 0, true, 'Position error must be non-zero for non-zero acceleration');
+  console.log(`  ✅ Oracle coupling broken: measurable non-zero position error observable (${evalResult.positionError.toFixed(6)})`);
+}
+
+// Test D — Differential Comparison & Tolerances
+{
+  console.log('Test D: Differential Comparison against declared tolerances');
+  const evalResult = evaluateDifferentialComparison(fixture);
+  assert.strictEqual(evalResult.status, 'WITHIN_TOLERANCE', 'Experiment status must be WITHIN_TOLERANCE');
+  assert.strictEqual(evalResult.positionError <= fixture.tolerances.position.absolute, true);
+  assert.strictEqual(evalResult.velocityError <= fixture.tolerances.velocity.absolute, true);
+  console.log(`  ✅ Differential comparison passed (Position Error: ${evalResult.positionError}, Velocity Error: ${evalResult.velocityError})`);
+}
+
+// Test E — Time Consistency
+{
+  console.log('Test E: Time Consistency Guard');
+  const invalidFixture = { ...fixture, targetTime: 2.0 }; // timestep 0.01 * 100 = 1.0 != 2.0
+  assert.throws(() => {
+    evaluateDifferentialComparison(invalidFixture);
+  }, /Invalid experiment configuration/, 'Mismatch between achievedTime and targetTime must throw');
+  console.log('  ✅ Time consistency guard rejected mismatched experiment configuration');
+}
+
+// Test F — Deterministic Replay
+{
+  console.log('Test F: Deterministic Replay Test');
+  const res1 = simulateExperimentalState(fixture.initialState, fixture.timestep, fixture.substeps);
+  const res2 = simulateExperimentalState(fixture.initialState, fixture.timestep, fixture.substeps);
+  assert.deepStrictEqual(res1.position, res2.position, 'Position output must be bitwise identical for identical runs');
+  assert.deepStrictEqual(res1.velocity, res2.velocity, 'Velocity output must be bitwise identical for identical runs');
+  console.log('  ✅ Deterministic replay verified: identical numeric results across runs');
+}
+
+// Test G — Convergence Experiment
+{
+  console.log('Test G: Convergence Experiment across decreasing timesteps');
+  const timesteps = [0.1, 0.05, 0.01, 0.005, 0.001];
+  const convergenceResults = runConvergenceExperiment(
+    fixture.initialState,
+    fixture.targetTime,
+    timesteps,
+    fixture.tolerances
+  );
+
+  for (let i = 1; i < convergenceResults.length; i++) {
+    const prev = convergenceResults[i - 1];
+    const curr = convergenceResults[i];
+    assert.strictEqual(
+      curr.positionError < prev.positionError,
+      true,
+      `Position error for dt=${curr.timestep} (${curr.positionError}) must be smaller than for dt=${prev.timestep} (${prev.positionError})`
+    );
+  }
+
+  console.log('  ✅ Convergence verified: smaller timesteps strictly reduced position error');
+  console.log('  📊 Observed Convergence Results:');
+  convergenceResults.forEach(r => {
+    const rateStr = r.observedRate !== null ? ` (observed rate p ≈ ${r.observedRate.toFixed(2)})` : '';
+    console.log(`     dt = ${r.timestep.toString().padEnd(5)} | pos error = ${r.positionError.toFixed(8)}${rateStr}`);
+  });
+}
+
+// Test H — Regression Tests (Original Environmental Dynamics Runtime Tests)
+
+// H1. Determinism Test
+{
+  console.log('Test H1: Repeat Execution Determinism (Original)');
   const initState = createInitialWorldState({ global_energy: 0.1 });
   const event1 = createEnvironmentalEvent({
     id: 'evt-test-1',
@@ -33,9 +148,9 @@ console.log('🧪 Starting Environmental Dynamics Runtime Research Test Suite...
   console.log('  ✅ Repeat execution produced byte-level identical canonical state hash');
 }
 
-// 2. Multi-step Persistence Test
+// H2. Multi-step Persistence Test
 {
-  console.log('Test 2: Multi-step Causal State Persistence');
+  console.log('Test H2: Multi-step Causal State Persistence (Original)');
   let state = createInitialWorldState({ global_energy: 0.1 });
   assert.strictEqual(state.disturbances.length, 0);
 
@@ -60,9 +175,9 @@ console.log('🧪 Starting Environmental Dynamics Runtime Research Test Suite...
   console.log('  ✅ Multi-step state persistence and relaxation verified');
 }
 
-// 3. Superposition & Interference Test
+// H3. Superposition & Interference Test
 {
-  console.log('Test 3: Spatial Superposition & Interference');
+  console.log('Test H3: Spatial Superposition & Interference (Original)');
   let state = createInitialWorldState({ global_energy: 0.1 });
 
   const evtA = createEnvironmentalEvent({
@@ -89,9 +204,9 @@ console.log('🧪 Starting Environmental Dynamics Runtime Research Test Suite...
   console.log('  ✅ Superposition interference verified for overlapping fields');
 }
 
-// 4. Invalid Event & Parameter Clamping Test
+// H4. Invalid Event & Parameter Clamping Test
 {
-  console.log('Test 4: Invalid Event Handling & Parameter Clamping');
+  console.log('Test H4: Invalid Event Handling & Parameter Clamping (Original)');
   assert.throws(() => {
     createEnvironmentalEvent({ type: 'invalid_event_type' });
   }, /Invalid EnvironmentalEvent type/, 'Invalid event type should throw error');
@@ -106,9 +221,9 @@ console.log('🧪 Starting Environmental Dynamics Runtime Research Test Suite...
   console.log('  ✅ Out-of-bounds parameters clamped successfully');
 }
 
-// 5. Deterministic ManifestationProxy Compilation Test
+// H5. Deterministic ManifestationProxy Compilation Test
 {
-  console.log('Test 5: Deterministic ManifestationProxy Generation');
+  console.log('Test H5: Deterministic ManifestationProxy Generation (Original)');
   const state = createInitialWorldState({ global_energy: 0.7, coherence: 0.85 });
   const proxy1 = compileManifestationProxy(state);
   const proxy2 = compileManifestationProxy(state);
@@ -120,9 +235,9 @@ console.log('🧪 Starting Environmental Dynamics Runtime Research Test Suite...
   console.log('  ✅ ManifestationProxy compilation validated');
 }
 
-// 6. Scenario Corpus Integration Test
+// H6. Scenario Corpus Integration Test
 {
-  console.log('Test 6: All Scenarios Execute Deterministically');
+  console.log('Test H6: All Scenarios Execute Deterministically (Original)');
   for (const scenario of ALL_SCENARIOS) {
     let s = { ...scenario.initialState };
     for (const stepInfo of scenario.events) {
@@ -134,4 +249,4 @@ console.log('🧪 Starting Environmental Dynamics Runtime Research Test Suite...
   console.log('  ✅ All scenario corpus items executed cleanly');
 }
 
-console.log('✨ All Environmental Dynamics Runtime tests passed successfully!\n');
+console.log('✨ All Environmental Dynamics Runtime & Harness tests passed successfully!\n');
