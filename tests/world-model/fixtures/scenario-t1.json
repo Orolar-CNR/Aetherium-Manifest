@@ -1,0 +1,22 @@
+{
+  "scenarioId": "scenario-t1",
+  "initialState": {
+    "position": [0, 0, 0],
+    "velocity": [1.5, 0, 0],
+    "acceleration": [0.5, 0, 0]
+  },
+  "targetTime": 1.0,
+  "timestep": 0.01,
+  "substeps": 100,
+  "tolerances": {
+    "position": {
+      "absolute": 0.005
+    },
+    "velocity": {
+      "absolute": 0.000001
+    },
+    "time": {
+      "absolute": 0.000000001
+    }
+  }
+}
