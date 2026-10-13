@@ -46,7 +46,7 @@ When documents disagree, follow this order of authority:
 | **0.3** Contract Consistency Matrix | ✅ Docs | Open P0 items identified |
 | **P0 ADR drafts** | 📝 Draft | Four ADRs pending ratification |
 | **Lexical Boundary Gate** | ✅ Pass | CI linter + policy (wording governance) |
-| **Contract Freeze Gate** | ⏳ Open | Ratify or formally defer P0 ADRs |
+| **Contract Freeze Gate** | ⏳ Pending Ratification | Ratify or formally defer P0 ADRs |
 | **Phase 1 Presence Runtime** | 🛑 Not started | Candidate → Governor A → Envelope |
 
 Package version: **0.2.0** (Phase 0.x governed prototype).
