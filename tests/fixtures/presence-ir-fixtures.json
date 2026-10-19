@@ -1,0 +1,268 @@
+{
+  "$schema": "Aetherium Presence IR Fixture Collection v0.1",
+  "description": "Conformance test fixtures F-01 through F-10 for Thin First Slice Phase 1 Presence IR & Governor A validation",
+  "fixtures": [
+    {
+      "id": "F-01",
+      "name": "Standard Valid Nominal Candidate",
+      "description": "All fields well-formed and within nominal bounds",
+      "candidate": {
+        "x": 0.25,
+        "y": -0.5,
+        "z": 0.1,
+        "intent_phase": 0.3,
+        "confidence": 0.95,
+        "energy": 0.6,
+        "coherence": 0.9,
+        "policy_risk": 0.05
+      },
+      "expected_action": "VALIDATE",
+      "expected_status": "ACCEPTED",
+      "expected_clamped": false,
+      "expected_vector": {
+        "x": 0.25,
+        "y": -0.5,
+        "z": 0.1,
+        "phase": 0.3,
+        "confidence": 0.95,
+        "energy": 0.6,
+        "coherence": 0.9,
+        "policy_risk": 0.05
+      }
+    },
+    {
+      "id": "F-02",
+      "name": "Spatial Out of Bounds Candidate",
+      "description": "Spatial coordinates x and y exceed [-1, 1] bounds and require clamping",
+      "candidate": {
+        "x": 1.45,
+        "y": -1.8,
+        "z": 0.0,
+        "phase": 0.5,
+        "confidence": 0.8,
+        "energy": 0.7,
+        "coherence": 0.85,
+        "policy_risk": 0.1
+      },
+      "expected_action": "CLAMP",
+      "expected_status": "ACCEPTED",
+      "expected_clamped": true,
+      "expected_vector": {
+        "x": 1.0,
+        "y": -1.0,
+        "z": 0.0,
+        "phase": 0.5,
+        "confidence": 0.8,
+        "energy": 0.7,
+        "coherence": 0.85,
+        "policy_risk": 0.1
+      }
+    },
+    {
+      "id": "F-03",
+      "name": "High Policy Risk Rejection",
+      "description": "policy_risk is 0.92, exceeding the 0.85 threshold, triggering Governor A rejection",
+      "candidate": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "phase": 0.2,
+        "confidence": 0.9,
+        "energy": 0.8,
+        "coherence": 0.5,
+        "policy_risk": 0.92
+      },
+      "expected_action": "REJECT",
+      "expected_status": "REJECTED",
+      "expected_clamped": false
+    },
+    {
+      "id": "F-04",
+      "name": "Threshold Boundary Policy Risk",
+      "description": "policy_risk is exactly 0.85 (inclusive safety limit), passing rejection gate",
+      "candidate": {
+        "x": -0.1,
+        "y": 0.2,
+        "z": -0.3,
+        "phase": 0.4,
+        "confidence": 0.88,
+        "energy": 0.5,
+        "coherence": 0.9,
+        "policy_risk": 0.85
+      },
+      "expected_action": "VALIDATE",
+      "expected_status": "ACCEPTED",
+      "expected_clamped": false,
+      "expected_vector": {
+        "x": -0.1,
+        "y": 0.2,
+        "z": -0.3,
+        "phase": 0.4,
+        "confidence": 0.88,
+        "energy": 0.5,
+        "coherence": 0.9,
+        "policy_risk": 0.85
+      }
+    },
+    {
+      "id": "F-05",
+      "name": "Quiescent Minimal Energy State",
+      "description": "Energy at minimum 0.0 and coherence at 1.0 representing quiet background presence",
+      "candidate": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "phase": 0.0,
+        "confidence": 1.0,
+        "energy": 0.0,
+        "coherence": 1.0,
+        "policy_risk": 0.0
+      },
+      "expected_action": "VALIDATE",
+      "expected_status": "ACCEPTED",
+      "expected_clamped": false,
+      "expected_vector": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "phase": 0.0,
+        "confidence": 1.0,
+        "energy": 0.0,
+        "coherence": 1.0,
+        "policy_risk": 0.0
+      }
+    },
+    {
+      "id": "F-06",
+      "name": "Partial Input with Default Filling",
+      "description": "Missing optional fields x, y, z, confidence, energy are filled with safe spec defaults",
+      "candidate": {
+        "intent_phase": 0.75,
+        "coherence": 0.8,
+        "policy_risk": 0.12
+      },
+      "expected_action": "VALIDATE",
+      "expected_status": "ACCEPTED",
+      "expected_clamped": false,
+      "expected_vector": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "phase": 0.75,
+        "confidence": 1.0,
+        "energy": 0.5,
+        "coherence": 0.8,
+        "policy_risk": 0.12
+      }
+    },
+    {
+      "id": "F-07",
+      "name": "Negative State Variables Clamping",
+      "description": "Negative energy and confidence values are clamped to lower bound 0.0",
+      "candidate": {
+        "x": -0.5,
+        "y": 0.5,
+        "z": 0.0,
+        "phase": 0.1,
+        "confidence": -0.4,
+        "energy": -0.2,
+        "coherence": 0.9,
+        "policy_risk": 0.02
+      },
+      "expected_action": "CLAMP",
+      "expected_status": "ACCEPTED",
+      "expected_clamped": true,
+      "expected_vector": {
+        "x": -0.5,
+        "y": 0.5,
+        "z": 0.0,
+        "phase": 0.1,
+        "confidence": 0.0,
+        "energy": 0.0,
+        "coherence": 0.9,
+        "policy_risk": 0.02
+      }
+    },
+    {
+      "id": "F-08",
+      "name": "Child Execution Trace with Parent Lineage",
+      "description": "Valid candidate attached to parent_trace_id testing single-parent lineage encapsulation",
+      "candidate": {
+        "x": 0.1,
+        "y": -0.1,
+        "z": 0.2,
+        "phase": 0.6,
+        "confidence": 0.99,
+        "energy": 0.4,
+        "coherence": 0.95,
+        "policy_risk": 0.01
+      },
+      "trace_options": {
+        "trace_id": "trace-child-0042",
+        "parent_trace_id": "trace-root-0001",
+        "tick": "12",
+        "state_version": "3",
+        "timestamp_ns": "1700000000000000000"
+      },
+      "expected_action": "VALIDATE",
+      "expected_status": "ACCEPTED",
+      "expected_clamped": false,
+      "expected_vector": {
+        "x": 0.1,
+        "y": -0.1,
+        "z": 0.2,
+        "phase": 0.6,
+        "confidence": 0.99,
+        "energy": 0.4,
+        "coherence": 0.95,
+        "policy_risk": 0.01
+      }
+    },
+    {
+      "id": "F-09",
+      "name": "State Variables Upper Bound Clamping",
+      "description": "coherence=1.6 and energy=1.2 exceed 1.0 upper limit and require clamping",
+      "candidate": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "phase": 0.5,
+        "confidence": 1.0,
+        "energy": 1.2,
+        "coherence": 1.6,
+        "policy_risk": 0.1
+      },
+      "expected_action": "CLAMP",
+      "expected_status": "ACCEPTED",
+      "expected_clamped": true,
+      "expected_vector": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "phase": 0.5,
+        "confidence": 1.0,
+        "energy": 1.0,
+        "coherence": 1.0,
+        "policy_risk": 0.1
+      }
+    },
+    {
+      "id": "F-10",
+      "name": "Critical Threat Vector High Risk Rejection",
+      "description": "Maximized policy_risk=0.99 triggers immediate Governor A rejection",
+      "candidate": {
+        "x": 0.9,
+        "y": 0.9,
+        "z": 0.9,
+        "phase": 1.0,
+        "confidence": 1.0,
+        "energy": 1.0,
+        "coherence": 0.1,
+        "policy_risk": 0.99
+      },
+      "expected_action": "REJECT",
+      "expected_status": "REJECTED",
+      "expected_clamped": false
+    }
+  ]
+}

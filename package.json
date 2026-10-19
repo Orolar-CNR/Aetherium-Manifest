@@ -3,7 +3,8 @@
   "version": "0.2.0",
   "type": "module",
   "scripts": {
-    "test": "node tests/visual-state.test.js && node tests/webgpu/adapter.test.js && node tests/webgpu/shader-invariants.test.js && node tests/baseline-snapshot.test.js && node tests/perceptual-harness.test.js && node tests/temporal-signal-fusion.test.js && node tests/world-model/world-model.test.js",
+    "test": "node tests/presence-ir.test.js && node tests/visual-state.test.js && node tests/webgpu/adapter.test.js && node tests/webgpu/shader-invariants.test.js && node tests/baseline-snapshot.test.js && node tests/perceptual-harness.test.js && node tests/temporal-signal-fusion.test.js && node tests/world-model/world-model.test.js",
+    "test:presence-ir": "node tests/presence-ir.test.js",
     "serve": "python3 -m http.server 8080",
     "benchmark:sdf": "node research/field-dynamics/benchmarks/sdf-benchmark.js",
     "benchmark:world-model": "node research/world-model/benchmarks/world-model-benchmark.js",
