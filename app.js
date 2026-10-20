@@ -352,6 +352,125 @@ function submitIntent(text) {
   if (input) input.focus();
 }
 
+/**
+ * LocalLLMInterpreter (Phase 0.x)
+ * Local-first client-side model runner using Transformers.js for zero-shot classification
+ * with heuristic fallback to interpretIntent().
+ */
+export class LocalLLMInterpreter {
+  constructor() {
+    this.classifier = null;
+    this.isReady = false;
+    this.isLoading = false;
+    this.candidateLabels = ['energy', 'coherence', 'turbulence', 'convergence', 'organic'];
+  }
+
+  async initialize() {
+    if (this.isReady || this.isLoading) return;
+    // Environment check: Node.js / offline test runner bypasses dynamic CDN model loading
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      logSystem("[Local Interpreter] Environment check: Node.js detected. Bypassing CDN LLM loading.");
+      return;
+    }
+
+    try {
+      this.isLoading = true;
+      logSystem("[Local Interpreter] Bootstrapping tiny local LLM...");
+      const transformersUrl = "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.14.0";
+      const { pipeline } = await import(/* webpackIgnore: true */ transformersUrl);
+      this.classifier = await pipeline("zero-shot-classification", "Xenova/mobilebert-uncased-mnli");
+      this.isReady = true;
+      this.isLoading = false;
+      logSystem("[Local Interpreter] Ready to process messages.");
+    } catch (err) {
+      this.isLoading = false;
+      this.isReady = false;
+      logSystem(`[Local Interpreter] Initialization skipped/failed, using baseline fallback: ${err.message}`);
+    }
+  }
+
+  /**
+   * Receives message and processes text to produce a governed Visual State Candidate.
+   * Maps extracted metrics into a valid visual state candidate and validates via createVisualState().
+   */
+  async interpretMessage(inputText, episode = null) {
+    if (!this.isReady) {
+      await this.initialize();
+    }
+
+    if (!this.isReady || !this.classifier) {
+      // Synchronous heuristic fallback if LLM is not loaded / unavailable
+      const fallbackCandidate = interpretIntent(inputText, episode);
+      return createVisualState(fallbackCandidate);
+    }
+
+    try {
+      const output = await this.classifier(inputText, this.candidateLabels);
+
+      let scores = {
+        energy: 0.18,
+        coherence: 0.88,
+        turbulence: 0.10,
+        organicity: 0.55,
+        convergence: 0.55
+      };
+
+      if (output && Array.isArray(output.labels) && Array.isArray(output.scores)) {
+        output.labels.forEach((label, idx) => {
+          const score = Math.max(0.0, Math.min(1.0, output.scores[idx]));
+          if (label === "energy") scores.energy = score;
+          if (label === "coherence") scores.coherence = score;
+          if (label === "turbulence") scores.turbulence = score;
+          if (label === "organic") scores.organicity = score;
+          if (label === "convergence") scores.convergence = score;
+        });
+      }
+
+      // Determine phase, shape, and hue from high-scoring semantic dimensions
+      let phase = "RESPONDING";
+      let shape = "sphere";
+      let hue = 190;
+
+      if (scores.turbulence > 0.45) {
+        phase = "PROCESSING";
+        shape = "wave";
+        hue = 280;
+      } else if (scores.energy > 0.6) {
+        phase = "RESPONDING";
+        shape = scores.organicity > 0.5 ? "spiral" : "triangle";
+        hue = 215;
+      } else if (scores.coherence > 0.8) {
+        phase = "RESPONDING";
+        shape = "sphere";
+        hue = 195;
+      }
+
+      const candidate = {
+        phase,
+        shape,
+        hue,
+        energy: Math.max(0.0, Math.min(1.0, scores.energy)),
+        density: Math.max(0.0, Math.min(1.0, scores.convergence)),
+        turbulence: Math.max(0.0, Math.min(0.65, scores.turbulence)),
+        coherence: Math.max(0.0, Math.min(1.0, scores.coherence)),
+        confidence: 0.85
+      };
+
+      return createVisualState(candidate);
+    } catch (err) {
+      logSystem(`[Local Interpreter] Processing error, using baseline fallback: ${err.message}`);
+      const fallbackCandidate = interpretIntent(inputText, episode);
+      return createVisualState(fallbackCandidate);
+    }
+  }
+
+  createGovernedVisualState(candidate) {
+    return createVisualState(candidate);
+  }
+}
+
+export const localLLMInterpreter = new LocalLLMInterpreter();
+
 export function applyEpisodeIntent(episode) {
   try {
     const text = episode.primary_text || "";
@@ -370,6 +489,24 @@ export function applyEpisodeIntent(episode) {
     interactionStrength = 1.0;
 
     logSystem(`[EPISODE] ${episode.episode_id} committed -> phase=${governed.phase} shape=${governed.shape} hue=${governed.hue}`);
+
+    // Asynchronous progressive enhancement via LocalLLMInterpreter
+    if (text && localLLMInterpreter) {
+      localLLMInterpreter.interpretMessage(text, episode).then((llmGoverned) => {
+        if (llmGoverned && state.phase !== "NIRODHA") {
+          state.phase = llmGoverned.phase;
+          state.targetShape = llmGoverned.shape;
+          state.targetHue = llmGoverned.hue;
+          state.targetEnergy = llmGoverned.energy;
+          state.targetDensity = llmGoverned.density;
+          state.targetTurbulence = llmGoverned.turbulence;
+          state.targetCoherence = llmGoverned.coherence;
+          state.confidence = llmGoverned.confidence;
+        }
+      }).catch((e) => {
+        logSystem(`[Local Interpreter] Asynchronous processing pass-through: ${e.message}`);
+      });
+    }
   } catch (e) {
     console.error("Exception handled during episode intent governance:", e);
     state.phase = "IDLE";
