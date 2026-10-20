@@ -2,9 +2,41 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/aetherium-manifest/contracts/main/visual-state.schema.json",
   "title": "Aetherium Visual State Contract",
-  "description": "Canonical visual state contract for Aetherium Manifest Phase 0.1",
+  "description": "Canonical visual state contract for Aetherium Manifest Phase 1 (Observable State Manifestation)",
   "type": "object",
   "properties": {
+    "state": {
+      "type": "string",
+      "enum": ["IDLE", "LISTENING", "PROCESSING", "UNCERTAIN", "CONTRADICTION", "RESOLVED"]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "default": 0.55
+    },
+    "topology": {
+      "type": "string",
+      "enum": ["STABLE_RING", "WAVEFORM", "CONCENTRIC_SHELLS", "DISPERSED_FIELD", "CRACKED_SHELL", "CRYSTALLIZED_CORE"]
+    },
+    "coherence": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "default": 0.88
+    },
+    "lightIntensity": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "default": 0.5
+    },
+    "turbulence": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 0.65,
+      "default": 0.10
+    },
     "phase": {
       "type": "string",
       "enum": ["IDLE", "LISTENING", "PROCESSING", "RESPONDING", "WARNING", "ERROR", "NIRODHA"]
@@ -30,29 +62,15 @@
       "minimum": 0,
       "maximum": 1,
       "default": 0.55
-    },
-    "turbulence": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 0.65,
-      "default": 0.10
-    },
-    "coherence": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 1,
-      "default": 0.88
-    },
-    "confidence": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 1,
-      "default": 0.55
     }
   },
   "required": [
-    "phase",
-    "shape"
+    "state",
+    "confidence",
+    "topology",
+    "coherence",
+    "lightIntensity",
+    "turbulence"
   ],
   "additionalProperties": false
 }

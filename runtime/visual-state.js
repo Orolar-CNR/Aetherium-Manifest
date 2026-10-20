@@ -1,14 +1,25 @@
 /**
  * Aetherium Visual State Contract Validation and Safety Governor
- * Phase 0.1
- *
- * This module merges the strict type-safety hardening (no silent numeric-string
- * coercion, unknown-key rejection, NaN/Infinity rejection) with the shape/numeric
- * ranges that were already documented and shipped in docs/PHASE-0.1-VISUAL-STATE-
- * CONTRACT.md and used by app.js's particle field renderer (sphere/triangle/
- * spiral/line/wave, turbulence capped at 0.65). See docs/PHASE-0.1-VISUAL-STATE-
- * CONTRACT.md section 3 for the source of truth on these values.
+ * Phase 1 (Observable State Manifestation) with Phase 0.1 Backward Compatibility
  */
+
+export const ALLOWED_STATES = new Set([
+  "IDLE",
+  "LISTENING",
+  "PROCESSING",
+  "UNCERTAIN",
+  "CONTRADICTION",
+  "RESOLVED"
+]);
+
+export const ALLOWED_TOPOLOGIES = new Set([
+  "STABLE_RING",
+  "WAVEFORM",
+  "CONCENTRIC_SHELLS",
+  "DISPERSED_FIELD",
+  "CRACKED_SHELL",
+  "CRYSTALLIZED_CORE"
+]);
 
 export const ALLOWED_PHASES = new Set([
   "IDLE",
@@ -34,10 +45,17 @@ const NUMERIC_FIELDS = {
   density: { min: 0, max: 1.0, default: 0.55 },
   turbulence: { min: 0, max: 0.65, default: 0.10 },
   coherence: { min: 0, max: 1.0, default: 0.88 },
-  confidence: { min: 0, max: 1.0, default: 0.55 }
+  confidence: { min: 0, max: 1.0, default: 0.55 },
+  lightIntensity: { min: 0, max: 1.0, default: 0.5 }
 };
 
-const ALLOWED_KEYS = new Set(["phase", "shape", ...Object.keys(NUMERIC_FIELDS)]);
+const ALLOWED_KEYS = new Set([
+  "state",
+  "topology",
+  "phase",
+  "shape",
+  ...Object.keys(NUMERIC_FIELDS)
+]);
 
 /**
  * Intent-to-Parameter Mapping Dictionaries
@@ -45,6 +63,8 @@ const ALLOWED_KEYS = new Set(["phase", "shape", ...Object.keys(NUMERIC_FIELDS)])
  */
 export const INTENT_MAPPING_DICTIONARY = Object.freeze({
   certainty: {
+    state: "RESOLVED",
+    topology: "CRYSTALLIZED_CORE",
     phase: "RESPONDING",
     shape: "sphere",
     hue: 210,
@@ -52,9 +72,12 @@ export const INTENT_MAPPING_DICTIONARY = Object.freeze({
     density: 0.85,
     turbulence: 0.05,
     coherence: 0.95,
-    confidence: 0.95
+    confidence: 0.95,
+    lightIntensity: 0.85
   },
   conviction: {
+    state: "RESOLVED",
+    topology: "CRYSTALLIZED_CORE",
     phase: "RESPONDING",
     shape: "sphere",
     hue: 210,
@@ -62,9 +85,12 @@ export const INTENT_MAPPING_DICTIONARY = Object.freeze({
     density: 0.85,
     turbulence: 0.05,
     coherence: 0.95,
-    confidence: 0.95
+    confidence: 0.95,
+    lightIntensity: 0.85
   },
   caution: {
+    state: "UNCERTAIN",
+    topology: "DISPERSED_FIELD",
     phase: "WARNING",
     shape: "triangle",
     hue: 35,
@@ -72,9 +98,12 @@ export const INTENT_MAPPING_DICTIONARY = Object.freeze({
     density: 0.4,
     turbulence: 0.55,
     coherence: 0.4,
-    confidence: 0.5
+    confidence: 0.5,
+    lightIntensity: 0.3
   },
   hesitation: {
+    state: "UNCERTAIN",
+    topology: "DISPERSED_FIELD",
     phase: "WARNING",
     shape: "triangle",
     hue: 35,
@@ -82,9 +111,12 @@ export const INTENT_MAPPING_DICTIONARY = Object.freeze({
     density: 0.4,
     turbulence: 0.55,
     coherence: 0.4,
-    confidence: 0.5
+    confidence: 0.5,
+    lightIntensity: 0.3
   },
   exploration: {
+    state: "PROCESSING",
+    topology: "CONCENTRIC_SHELLS",
     phase: "PROCESSING",
     shape: "spiral",
     hue: 280,
@@ -92,9 +124,12 @@ export const INTENT_MAPPING_DICTIONARY = Object.freeze({
     density: 0.65,
     turbulence: 0.45,
     coherence: 0.6,
-    confidence: 0.7
+    confidence: 0.7,
+    lightIntensity: 0.6
   },
   inquiry: {
+    state: "LISTENING",
+    topology: "WAVEFORM",
     phase: "PROCESSING",
     shape: "wave",
     hue: 270,
@@ -102,9 +137,12 @@ export const INTENT_MAPPING_DICTIONARY = Object.freeze({
     density: 0.6,
     turbulence: 0.4,
     coherence: 0.65,
-    confidence: 0.65
+    confidence: 0.65,
+    lightIntensity: 0.5
   },
   contemplation: {
+    state: "PROCESSING",
+    topology: "CONCENTRIC_SHELLS",
     phase: "PROCESSING",
     shape: "sphere",
     hue: 190,
@@ -112,9 +150,12 @@ export const INTENT_MAPPING_DICTIONARY = Object.freeze({
     density: 0.9,
     turbulence: 0.05,
     coherence: 0.95,
-    confidence: 0.85
+    confidence: 0.85,
+    lightIntensity: 0.4
   },
   deep_reasoning: {
+    state: "PROCESSING",
+    topology: "CONCENTRIC_SHELLS",
     phase: "PROCESSING",
     shape: "sphere",
     hue: 190,
@@ -122,34 +163,57 @@ export const INTENT_MAPPING_DICTIONARY = Object.freeze({
     density: 0.9,
     turbulence: 0.05,
     coherence: 0.95,
-    confidence: 0.85
+    confidence: 0.85,
+    lightIntensity: 0.4
   }
 });
+
+const PHASE_TO_STATE_MAP = {
+  IDLE: { state: "IDLE", topology: "STABLE_RING", lightIntensity: 0.15 },
+  LISTENING: { state: "LISTENING", topology: "WAVEFORM", lightIntensity: 0.3 },
+  PROCESSING: { state: "PROCESSING", topology: "CONCENTRIC_SHELLS", lightIntensity: 0.5 },
+  RESPONDING: { state: "RESOLVED", topology: "CRYSTALLIZED_CORE", lightIntensity: 0.8 },
+  WARNING: { state: "UNCERTAIN", topology: "DISPERSED_FIELD", lightIntensity: 0.25 },
+  ERROR: { state: "CONTRADICTION", topology: "CRACKED_SHELL", lightIntensity: 0.2 },
+  NIRODHA: { state: "IDLE", topology: "STABLE_RING", lightIntensity: 0.05 }
+};
+
+const STATE_TO_PHASE_MAP = {
+  IDLE: { phase: "IDLE", shape: "sphere" },
+  LISTENING: { phase: "LISTENING", shape: "wave" },
+  PROCESSING: { phase: "PROCESSING", shape: "spiral" },
+  UNCERTAIN: { phase: "WARNING", shape: "triangle" },
+  CONTRADICTION: { phase: "ERROR", shape: "line" },
+  RESOLVED: { phase: "RESPONDING", shape: "sphere" }
+};
 
 /**
  * Validates a Visual State against the contract specification in
  * contracts/visual-state.schema.json.
- * Pure, non-mutating validation. Never clamps or fills defaults -- an object is
- * only "valid" here if it is ALREADY a fully-specified canonical state.
- * Rejects any unknown fields, missing required fields (phase/shape), or
- * out-of-bound / wrongly-typed values.
  *
  * @param {any} state - The object to validate.
  * @returns {boolean} True if strictly valid; false otherwise.
  */
-export function validateVisualState(state) {
-  if (state === null || typeof state !== "object" || Array.isArray(state)) {
+export function validateVisualState(obj) {
+  if (obj === null || typeof obj !== "object" || Array.isArray(obj)) {
     return false;
   }
 
-  if (!("phase" in state) || !("shape" in state)) return false;
-  if (!ALLOWED_PHASES.has(state.phase) || !ALLOWED_SHAPES.has(state.shape)) return false;
+  const hasNewRequired = "state" in obj && "topology" in obj;
+  const hasLegacyRequired = "phase" in obj && "shape" in obj;
 
-  for (const key of Object.keys(state)) {
-    if (!ALLOWED_KEYS.has(key)) return false; // Reject unknown keys
+  if (!hasNewRequired && !hasLegacyRequired) return false;
+
+  if ("state" in obj && !ALLOWED_STATES.has(obj.state)) return false;
+  if ("topology" in obj && !ALLOWED_TOPOLOGIES.has(obj.topology)) return false;
+  if ("phase" in obj && !ALLOWED_PHASES.has(obj.phase)) return false;
+  if ("shape" in obj && !ALLOWED_SHAPES.has(obj.shape)) return false;
+
+  for (const key of Object.keys(obj)) {
+    if (!ALLOWED_KEYS.has(key)) return false;
 
     if (NUMERIC_FIELDS[key]) {
-      const val = state[key];
+      const val = obj[key];
       if (typeof val !== "number" || !Number.isFinite(val)) return false;
 
       const bounds = NUMERIC_FIELDS[key];
@@ -163,18 +227,6 @@ export function validateVisualState(state) {
 /**
  * Creates a Canonical Target Visual State from a Candidate State.
  *
- * - phase/shape are mandatory semantic fields: missing or invalid values throw.
- *   The runtime never invents a semantic meaning that wasn't supplied.
- * - Numeric fields are strictly type-checked: non-number, NaN, and +/-Infinity
- *   throw (no silent coercion of numeric strings/booleans).
- * - In-range numbers pass through; out-of-range numbers are clamped, per
- *   docs/PHASE-0.1-VISUAL-STATE-CONTRACT.md section 4 ("Strict Boundaries").
- * - Missing OPTIONAL numeric fields are filled with the documented defaults
- *   (section 3.3) -- this is not a "silent malformation" fallback, it's the
- *   spec's own default-filling rule (section 4.4).
- * - Unknown properties throw. The candidate object itself is never mutated;
- *   this always returns a new object.
- *
  * @param {any} candidate - The input values to normalize and govern.
  * @returns {any} A new, strictly valid canonical VisualState object.
  * @throws {TypeError|Error} If the candidate is malformed.
@@ -184,16 +236,63 @@ export function createVisualState(candidate) {
     throw new TypeError("Candidate must be an object");
   }
 
-  if (!("phase" in candidate)) throw new Error("Missing required semantic property: phase");
-  if (!("shape" in candidate)) throw new Error("Missing required semantic property: shape");
+  if (!("phase" in candidate) && !("state" in candidate)) {
+    throw new Error("Missing required semantic property: phase");
+  }
 
-  if (!ALLOWED_PHASES.has(candidate.phase)) throw new Error(`Invalid phase: ${candidate.phase}`);
-  if (!ALLOWED_SHAPES.has(candidate.shape)) throw new Error(`Invalid shape: ${candidate.shape}`);
+  const hasNewReq = "state" in candidate && "topology" in candidate;
+  const hasLegacyReq = "phase" in candidate && "shape" in candidate;
 
-  const canonicalState = {
-    phase: candidate.phase,
-    shape: candidate.shape
-  };
+  if (!hasNewReq && !hasLegacyReq) {
+    if (!("topology" in candidate) && !("shape" in candidate)) {
+      throw new Error("Missing required semantic property: shape");
+    }
+  }
+
+  if ("state" in candidate && !ALLOWED_STATES.has(candidate.state)) {
+    throw new Error(`Invalid state: ${candidate.state}`);
+  }
+  if ("topology" in candidate && !ALLOWED_TOPOLOGIES.has(candidate.topology)) {
+    throw new Error(`Invalid topology: ${candidate.topology}`);
+  }
+  if ("phase" in candidate && !ALLOWED_PHASES.has(candidate.phase)) {
+    throw new Error(`Invalid phase: ${candidate.phase}`);
+  }
+  if ("shape" in candidate && !ALLOWED_SHAPES.has(candidate.shape)) {
+    throw new Error(`Invalid shape: ${candidate.shape}`);
+  }
+
+  const canonicalState = {};
+
+  if ("state" in candidate) {
+    canonicalState.state = candidate.state;
+  }
+  if ("topology" in candidate) {
+    canonicalState.topology = candidate.topology;
+  }
+  if ("phase" in candidate) {
+    canonicalState.phase = candidate.phase;
+  }
+  if ("shape" in candidate) {
+    canonicalState.shape = candidate.shape;
+  }
+
+  if (!("state" in canonicalState) && canonicalState.phase) {
+    const mapped = PHASE_TO_STATE_MAP[canonicalState.phase];
+    if (mapped) {
+      canonicalState.state = mapped.state;
+      if (!("topology" in canonicalState)) canonicalState.topology = mapped.topology;
+      if (!("lightIntensity" in candidate)) canonicalState.lightIntensity = mapped.lightIntensity;
+    }
+  }
+
+  if (!("phase" in canonicalState) && canonicalState.state) {
+    const mapped = STATE_TO_PHASE_MAP[canonicalState.state];
+    if (mapped) {
+      canonicalState.phase = mapped.phase;
+      if (!("shape" in canonicalState)) canonicalState.shape = mapped.shape;
+    }
+  }
 
   for (const key of Object.keys(candidate)) {
     if (!ALLOWED_KEYS.has(key)) {
@@ -226,11 +325,6 @@ export function createVisualState(candidate) {
 
 /**
  * Maps a cognitive intent tone or intent payload to a canonical Visual State.
- *
- * @param {string|object} intentInput - Cognitive tone string (e.g. "certainty", "caution", "exploration", "contemplation") or object containing tone/parameters.
- * @param {object} [overrides={}] - Optional property overrides to apply on top of the mapped dictionary state.
- * @returns {object} A new, strictly valid canonical VisualState object.
- * @throws {Error|TypeError} If the intent tone is unknown and no valid candidate phase/shape are provided, or if validation fails.
  */
 export function mapIntentToVisualState(intentInput, overrides = {}) {
   let toneKey = null;
@@ -250,7 +344,7 @@ export function mapIntentToVisualState(intentInput, overrides = {}) {
 
   const mappedDict = toneKey ? INTENT_MAPPING_DICTIONARY[toneKey] : null;
 
-  if (!mappedDict && !baseCandidate.phase && !overrides.phase) {
+  if (!mappedDict && !baseCandidate.phase && !baseCandidate.state && !overrides.phase && !overrides.state) {
     throw new Error(`Unknown intent tone: ${toneKey || intentInput}`);
   }
 
@@ -263,14 +357,6 @@ export function mapIntentToVisualState(intentInput, overrides = {}) {
   return createVisualState(candidate);
 }
 
-/**
- * @deprecated Use createVisualState instead.
- * The previous implementation of this function silently coerced numeric
- * strings via Number(value) and silently dropped unknown properties, which
- * violated the "No Silent Malformations" guarantee. Kept as a hard-failing
- * stub so any remaining call sites are caught immediately instead of quietly
- * behaving differently than the caller expects.
- */
 export function clampVisualState() {
   throw new Error("clampVisualState is deprecated. Use createVisualState() for deterministic, strict contract enforcement.");
 }

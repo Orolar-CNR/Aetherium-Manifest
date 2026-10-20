@@ -1,0 +1,50 @@
+[
+  {
+    "state": "IDLE",
+    "confidence": 0.5,
+    "topology": "STABLE_RING",
+    "coherence": 0.85,
+    "lightIntensity": 0.15,
+    "turbulence": 0.02
+  },
+  {
+    "state": "LISTENING",
+    "confidence": 0.6,
+    "topology": "WAVEFORM",
+    "coherence": 0.7,
+    "lightIntensity": 0.3,
+    "turbulence": 0.1
+  },
+  {
+    "state": "PROCESSING",
+    "confidence": 0.8,
+    "topology": "CONCENTRIC_SHELLS",
+    "coherence": 0.9,
+    "lightIntensity": 0.5,
+    "turbulence": 0.2
+  },
+  {
+    "state": "UNCERTAIN",
+    "confidence": 0.3,
+    "topology": "DISPERSED_FIELD",
+    "coherence": 0.2,
+    "lightIntensity": 0.25,
+    "turbulence": 0.6
+  },
+  {
+    "state": "CONTRADICTION",
+    "confidence": 0.1,
+    "topology": "CRACKED_SHELL",
+    "coherence": 0.1,
+    "lightIntensity": 0.2,
+    "turbulence": 0.0
+  },
+  {
+    "state": "RESOLVED",
+    "confidence": 0.95,
+    "topology": "CRYSTALLIZED_CORE",
+    "coherence": 1.0,
+    "lightIntensity": 0.8,
+    "turbulence": 0.05
+  }
+]

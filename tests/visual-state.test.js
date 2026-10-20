@@ -148,7 +148,7 @@ runTest("Schema Consistency Guard (JSON Check)", () => {
 
   assert.ok(schema.$schema.includes("2020-12"), "Must use draft 2020-12 schema identifier");
   assert.strictEqual(schema.additionalProperties, false);
-  assert.deepEqual(schema.required, ["phase", "shape"], "Only phase/shape should be strictly required");
+  assert.deepEqual(schema.required, ["state", "confidence", "topology", "coherence", "lightIntensity", "turbulence"], "Phase 1 required properties");
   assert.ok(schema.properties.hue.maximum === 360);
   assert.ok(schema.properties.turbulence.maximum === 0.65, "turbulence max must match app.js's tuned field-function constants");
   assert.deepEqual(
@@ -405,3 +405,19 @@ runTest("Intent Mapping: Unknown tone with phase and shape override succeeds", (
 
 console.log(`\nTests Completed: ${passed} Passed, ${failed} Failed`);
 if (failed > 0) process.exit(1);
+
+
+runTest("Phase 1 Mock States Validation", () => {
+  const mockStatesPath = path.join(__dirname, "mock-states.json");
+  const mockStates = JSON.parse(fs.readFileSync(mockStatesPath, "utf8"));
+  assert.strictEqual(mockStates.length, 6, "Must contain 6 mock states");
+
+  const schemaPath = path.join(__dirname, "../contracts/visual-state.schema.json");
+  const schema = JSON.parse(fs.readFileSync(schemaPath, "utf8"));
+
+  for (const item of mockStates) {
+    for (const req of schema.required) {
+      assert.ok(req in item, `Mock state ${item.state} missing ${req}`);
+    }
+  }
+});
